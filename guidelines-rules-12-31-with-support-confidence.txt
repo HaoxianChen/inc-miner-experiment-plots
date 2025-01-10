@@ -1,0 +1,16 @@
+ree,support,confidence
+t0.education-num=t1.education-num -> t0.education=t1.education,0.1904201642558998,1
+t0.capital-loss=t1.capital-loss ^ t0.income=t1.income ^ t0.education=t1.education ^ t0.education-num=t1.education-num -> t0.capital-gain=t1.capital-gain,0.10911589345534675,0.8946818834500547
+t0.education=t1.education ^ t0.age=t1.age ^ t0.income=t1.income -> t0.capital-gain=t1.capital-gain,0.16329227127465523,0.8575366580149136
+t0.capital-gain=t1.capital-gain -> t0.capital-loss=t1.capital-loss,0.7574454205473325,0.9009840697839405
+t0.income=t1.income -> t0.capital-gain=t1.capital-gain,0.5652801135549841,0.891103906360988
+t0.marital-status=t1.marital-status ^ t0.relationship=t1.relationship -> t0.sex=t1.sex,0.19211195102071774,0.8892695879554359
+t0.income=t1.income ^ t0.marital-status=t1.marital-status ^ t0.age=t1.age ^ t0.education=t1.education -> t0.native-country=t1.native-country,0.16047609764853416,0.8427473963990246
+t0.race=t1.race ^ t0.income=t1.income ^ t0.hours-per-week=t1.hours-per-week -> t0.capital-loss=t1.capital-loss,0.10028844321831212,0.9290604238738025
+t0.fnlwgt=t1.fnlwgt ^ t0.education-num=t1.education-num -> t0.income=t1.income,0.00003698199175639722,0.9371847885842676
+t0.capital-gain=t1.capital-gain ^ t0.native-country=t1.native-country ^ t0.sex=t1.sex ^ t0.marital-status=t1.marital-status -> t0.race=t1.race,0.12655783409808324,0.8229295304681721
+t0.fnlwgt=t1.fnlwgt ^ t0.education=t1.education -> t0.workclass=t1.workclass,0.00003569546476627439,0.9045820685039558
+t0.education=Bachelors -> t0.education-num=13,0.16446055096587942,1
+t0.workclass=noValueSetHere123156456 -> t0.occupation=noValueSetHere123156456,0.05638647461687295,1
+t0.capital-gain>=8614 ^ t0.marital-status!=Married-civ-spouse -> t0.income=>50K,0.008814225607321643,0.9828767123287672
+t0.relationship=Own-child -> t0.marital-status=Never-married,0.1377414698565769,0.8849644830307813

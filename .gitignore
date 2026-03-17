@@ -1,3 +1,10 @@
 .DS_Store
 .ipynb_checkpoints/
 ~*
+
+# Plot outputs and logs (generated; do not commit)
+inc-data/plots/*.pdf
+*.log
+
+# Local notes (do not commit)
+inc-data/ISSUES.md

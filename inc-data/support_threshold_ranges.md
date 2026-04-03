@@ -6,11 +6,11 @@ Summary of the `support` column (minimum support threshold) across experiment re
 
 ## Data sources used in the notebook
 
-### vs_incdc (Adult, Airports — vs IncDC/3DC)
+### vs_incdc_v2 (Adult, Airports — vs IncDC/3DC)
 | File | Support range | Notes |
 |------|---------------|--------|
-| `vs_incdc/experiment_results_adult.csv` | **2** (single value) | Same for ADD, DELETE, SCALE |
-| `vs_incdc/experiment_results_airports.csv` | **2** (single value) | Same for ADD, DELETE, SCALE |
+| `vs_incdc_v2/experiment_results_adult.csv` | **2** (single value) | Same for ADD, DELETE, SCALE |
+| `vs_incdc_v2/experiment_results_airports.csv` | **2** (single value) | Same for ADD, DELETE, SCALE |
 
 ### inc_vs_batch2 (Hospital, Ncvoter, DBLP_agg — IncMiner vs BatchMiner)
 | File | Support range | Notes |

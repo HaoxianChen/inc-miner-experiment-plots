@@ -29,13 +29,6 @@ Plots saved to: `plots-paper/`
   - CONFIDENCE experiments (time/recall vs confidence)
   - COUNT-SKETCH experiments (time vs W/H parameters)
 
-## Plot Modes
-
-| Mode | --paper? | Titles | X-labels | Legends | Size | Style |
-|------|-----------|--------|----------|---------|------|-------|
-| Review | No | ✓ | ✓ | ✓ | (10,6) | seaborn |
-| Paper | Yes | ✗ | ✗ | ✗ | (4,3) | matplotlib default |
-
 ## Data Sources
 
 - Experimental data: `inc_vs_batch_v4/experiment_results_*.csv`

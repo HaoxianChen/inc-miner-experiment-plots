@@ -18,9 +18,9 @@ print("Fig-e: NCVoter - Varying Delta D+")
 print("-" * 70)
 
 # Using new data from notebook
-pincminer_plus = np.array([0.12, 0.25, 0.42])
+pincminer_plus = np.array([1.13, 3.21, 4.50])
 incdc_plus = np.array([832, 1749, 5000])
-dc3_plus = np.array([11, 21, 30])
+dc3_plus = np.array([11.779, 19.933, 30.489])
 
 speedup_incdc_plus = incdc_plus / pincminer_plus
 speedup_dc3_plus = dc3_plus / pincminer_plus
@@ -46,8 +46,8 @@ print("Fig-f: NCVoter - Varying Delta D-")
 print("-" * 70)
 
 # Using new data
-pincminer_minus = np.array([0.13, 0.28, 0.46])
-dc3_minus = np.array([16, 157, 442])
+pincminer_minus = np.array([1.29, 2.89, 5.10])
+dc3_minus = np.array([16.342, 161.817, 427.332])
 
 speedup_dc3_minus = dc3_minus / pincminer_minus
 

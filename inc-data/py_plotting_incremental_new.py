@@ -35,11 +35,12 @@ pincmineraux = "PIncMiner$_{Aux}$"
 # Global style map: label -> {color, marker, markersize} for consistent naming and styling across plots
 
 MARKER_SIZE = 8
-FONT_SIZE = 14
+FONT_SIZE = 18
+TICK_LABEL_SIZE = 20
 pyplot.rc('font', size=FONT_SIZE)
 pyplot.rc('axes', labelsize=FONT_SIZE, titlesize=FONT_SIZE)
-pyplot.rc('xtick', labelsize=FONT_SIZE)
-pyplot.rc('ytick', labelsize=FONT_SIZE)
+pyplot.rc('xtick', labelsize=TICK_LABEL_SIZE)
+pyplot.rc('ytick', labelsize=TICK_LABEL_SIZE)
 pyplot.rc('legend', fontsize=FONT_SIZE)
 
 STYLE_MAP = {
@@ -114,8 +115,8 @@ pyplot.plot(x, batchminer_, label=batchminer, marker=markers[1], ms=12, color=co
 pyplot.plot(x, incremental_, label=incremental, marker=markers[4], ms=12, color=colors[4], ls='-', markeredgewidth=4)
 pyplot.plot(x, pincmineraux_, label=pincmineraux, marker=markers[5], ms=12, color=colors[5], ls='-', markeredgewidth=4)
 
-pyplot.ylabel('Running Time (s)', fontsize=18)
-pyplot.tick_params(labelsize=18)
+pyplot.ylabel('Running Time (s)', fontsize=22)
+pyplot.tick_params(labelsize=22)
 pyplot.xticks(np.arange(5), x_labels)
 pyplot.yscale('log')
 pyplot.savefig("./figures/ncvoter_varying_deltaD.pdf", dpi=200, bbox_inches='tight')
@@ -160,8 +161,8 @@ pyplot.plot(x, batchminer_, label=batchminer, marker=markers[1], ms=12, color=co
 pyplot.plot(x, incremental_, label=incremental, marker=markers[4], ms=12, color=colors[4], ls='-', markeredgewidth=4)
 pyplot.plot(x, pincmineraux_, label=pincmineraux, marker=markers[5], ms=12, color=colors[5], ls='-', markeredgewidth=4)
 
-pyplot.ylabel('Running Time (s)', fontsize=18)
-pyplot.tick_params(labelsize=18)
+pyplot.ylabel('Running Time (s)', fontsize=22)
+pyplot.tick_params(labelsize=22)
 pyplot.xticks(np.arange(5), x_labels)
 pyplot.yscale('log')
 pyplot.savefig("./figures/dblp_varying_deltaD.pdf", dpi=200, bbox_inches='tight')
@@ -188,8 +189,8 @@ pyplot.plot(x, batchminer_, label=batchminer, marker=markers[1], ms=12, color=co
 pyplot.plot(x, incremental_, label=incremental, marker=markers[4], ms=12, color=colors[4], ls='-', markeredgewidth=4)
 pyplot.plot(x, pincmineraux_, label=pincmineraux, marker=markers[5], ms=12, color=colors[5], ls='-', markeredgewidth=4)
 
-pyplot.ylabel('Running Time (s)', fontsize=18)
-pyplot.tick_params(labelsize=18)
+pyplot.ylabel('Running Time (s)', fontsize=22)
+pyplot.tick_params(labelsize=22)
 pyplot.xticks(np.arange(5), x_labels)
 pyplot.yscale('log')
 pyplot.savefig("./figures/dblp_varying_deltaD+.pdf", dpi=200, bbox_inches='tight')
@@ -214,8 +215,8 @@ pyplot.plot(x, batchminer_, label=batchminer, marker=markers[1], ms=12, color=co
 pyplot.plot(x, incremental_, label=incremental, marker=markers[4], ms=12, color=colors[4], ls='-', markeredgewidth=4)
 pyplot.plot(x, pincmineraux_, label=pincmineraux, marker=markers[5], ms=12, color=colors[5], ls='-', markeredgewidth=4)
 
-pyplot.ylabel('Running Time (s)', fontsize=18)
-pyplot.tick_params(labelsize=18)
+pyplot.ylabel('Running Time (s)', fontsize=22)
+pyplot.tick_params(labelsize=22)
 pyplot.xticks(np.arange(5), x_labels)
 pyplot.yscale('log')
 pyplot.savefig("./figures/ncvoter_varying_deltaD-.pdf", dpi=200, bbox_inches='tight')
@@ -239,10 +240,10 @@ print("Max 2:", np.max(np.array([11, 21, 30, 16, 157, 442]) / np.array([2.78, 21
 # =============================================================================
 
 pyplot.figure()
-pincminer_ = [0.12, 0.25, 0.42]
+pincminer_ = [1.13, 3.21, 4.50]
 
 incdc_ = [832, 1749, 5000]
-dc_ = [11, 21, 30]
+dc_ = [11.779, 19.933, 30.489]
 
 x_labels = ["1\\%", "3\\%", "5\\%"]
 x = np.arange(3)
@@ -251,21 +252,34 @@ pyplot.plot(x, pincminer_, label=pincminer, marker=markers[0], ms=12, color=colo
 pyplot.plot(x, incdc_, label=incdc, marker=markers[2], ms=12, color=colors[2], ls='-', markeredgewidth=4)
 pyplot.plot(x, dc_, label=dc3, marker=markers[3], ms=12, color=colors[3], ls='-', markeredgewidth=4)
 
-pyplot.ylabel('Running Time (s)', fontsize=18)
-pyplot.tick_params(labelsize=18)
+pyplot.ylabel('Running Time (s)', fontsize=22)
+pyplot.tick_params(labelsize=22)
 pyplot.xticks(np.arange(3), x_labels)
 pyplot.ylim(0.1, 3600)
 pyplot.yscale('log')
 pyplot.savefig("./figures/ncvoter_dc_varying_deltaD_plus.pdf", dpi=200, bbox_inches='tight')
 pyplot.close()
 
+# Print speedup stats for fig-e
+print("=" * 70)
+print("Fig-e (NCVoter Delta D+) Speedup Stats")
+print("=" * 70)
+speedup_dc3 = np.array(dc_) / np.array(pincminer_)
+speedup_incdc = np.array(incdc_) / np.array(pincminer_)
+for i, label in enumerate(x_labels):
+    print(f"  {label}: PIncMiner={pincminer_[i]:.2f}s, 3DC={dc_[i]:.3f}s, IncDC={incdc_[i]:.0f}s")
+    print(f"         Speedup vs 3DC: {speedup_dc3[i]:.1f}x, vs IncDC: {speedup_incdc[i]:.1f}x")
+print(f"Average speedup vs 3DC: {np.average(speedup_dc3):.1f}x, max: {np.max(speedup_dc3):.1f}x")
+print(f"Average speedup vs IncDC: {np.average(speedup_incdc):.1f}x, max: {np.max(speedup_incdc):.1f}x")
+print()
+
 # =============================================================================
 # fig-f: NCVoter - Varying Delta D-
 # =============================================================================
 
 pyplot.figure()
-pincminer_ = [0.13, 0.28, 0.46]
-dc_ = [16, 157, 442]
+pincminer_ = [1.29, 2.89, 5.10]
+dc_ = [16.342, 161.817, 427.332]
 
 x_labels = ["1\\%", "3\\%", "5\\%"]
 x = np.arange(3)
@@ -273,13 +287,24 @@ x = np.arange(3)
 pyplot.plot(x, pincminer_, label=pincminer, marker=markers[0], ms=12, color=colors[0], ls='-', markeredgewidth=4)
 pyplot.plot(x, dc_, label=dc3, marker=markers[3], ms=12, color=colors[3], ls='-', markeredgewidth=4)
 
-pyplot.ylabel('Running Time (s)', fontsize=18)
-pyplot.tick_params(labelsize=18)
+pyplot.ylabel('Running Time (s)', fontsize=22)
+pyplot.tick_params(labelsize=22)
 pyplot.xticks(np.arange(3), x_labels)
 pyplot.ylim(0.1, 3600)
 pyplot.yscale('log')
 pyplot.savefig("./figures/ncvoter_dc_varying_deltaD_minus.pdf", dpi=200, bbox_inches='tight')
 pyplot.close()
+
+# Print speedup stats for fig-f
+print("=" * 70)
+print("Fig-f (NCVoter Delta D-) Speedup Stats")
+print("=" * 70)
+speedup_dc3 = np.array(dc_) / np.array(pincminer_)
+for i, label in enumerate(x_labels):
+    print(f"  {label}: PIncMiner={pincminer_[i]:.2f}s, 3DC={dc_[i]:.3f}s")
+    print(f"         Speedup vs 3DC: {speedup_dc3[i]:.1f}x")
+print(f"Average speedup vs 3DC: {np.average(speedup_dc3):.1f}x, max: {np.max(speedup_dc3):.1f}x")
+print()
 
 # =============================================================================
 # fig-g: Inspection - Varying support threshold
@@ -300,8 +325,8 @@ pyplot.plot(x, batchminer_, label=batchminer, marker=markers[1], ms=12, color=co
 pyplot.plot(x, incremental_, label=incremental, marker=markers[4], ms=12, color=colors[4], ls='-', markeredgewidth=4)
 pyplot.plot(x, pincmineraux_, label=pincmineraux, marker=markers[5], ms=12, color=colors[5], ls='-', markeredgewidth=4)
 
-pyplot.ylabel('Running Time (s)', fontsize=18)
-pyplot.tick_params(labelsize=18)
+pyplot.ylabel('Running Time (s)', fontsize=22)
+pyplot.tick_params(labelsize=22)
 pyplot.xticks(np.arange(5), x_labels)
 pyplot.yscale('log')
 pyplot.savefig("./figures/inspection_varying_support.pdf", dpi=200, bbox_inches='tight')
@@ -330,8 +355,8 @@ pyplot.plot(x, batchminer_, label=batchminer, marker=markers[1], ms=12, color=co
 pyplot.plot(x, incremental_, label=incremental, marker=markers[4], ms=12, color=colors[4], ls='-', markeredgewidth=4)
 pyplot.plot(x, pincmineraux_, label=pincmineraux, marker=markers[5], ms=12, color=colors[5], ls='-', markeredgewidth=4)
 
-pyplot.ylabel('Running Time (s)', fontsize=18)
-pyplot.tick_params(labelsize=18)
+pyplot.ylabel('Running Time (s)', fontsize=22)
+pyplot.tick_params(labelsize=22)
 pyplot.xticks(np.arange(4), x_labels)
 pyplot.yscale('log')
 pyplot.savefig("./figures/inspection_varying_confidence.pdf", dpi=200, bbox_inches='tight')
@@ -358,8 +383,8 @@ pyplot.plot(x, batchminer_, label=batchminer, marker=markers[1], ms=12, color=co
 pyplot.plot(x, incremental_, label=incremental, marker=markers[4], ms=12, color=colors[4], ls='-', markeredgewidth=4)
 pyplot.plot(x, pincmineraux_, label=pincmineraux, marker=markers[5], ms=12, color=colors[5], ls='-', markeredgewidth=4)
 
-pyplot.ylabel('Running Time (s)', fontsize=18)
-pyplot.tick_params(labelsize=18)
+pyplot.ylabel('Running Time (s)', fontsize=22)
+pyplot.tick_params(labelsize=22)
 pyplot.xticks(np.arange(5), x_labels)
 pyplot.yscale('log')
 pyplot.savefig("./figures/adult_varying_D.pdf", dpi=200, bbox_inches='tight')
@@ -384,8 +409,8 @@ pyplot.plot(x, batchminer_, label=batchminer, marker=markers[1], ms=12, color=co
 pyplot.plot(x, incremental_, label=incremental, marker=markers[4], ms=12, color=colors[4], ls='-', markeredgewidth=4)
 pyplot.plot(x, pincmineraux_, label=pincmineraux, marker=markers[5], ms=12, color=colors[5], ls='-', markeredgewidth=4)
 
-pyplot.ylabel('Running Time (s)', fontsize=18)
-pyplot.tick_params(labelsize=18)
+pyplot.ylabel('Running Time (s)', fontsize=22)
+pyplot.tick_params(labelsize=22)
 pyplot.xticks(np.arange(5), x_labels)
 pyplot.yscale('log')
 pyplot.savefig("./figures/dblp_varying_D.pdf", dpi=200, bbox_inches='tight')
@@ -412,8 +437,8 @@ pyplot.plot(x, batchminer_, label=batchminer, marker=markers[1], ms=12, color=co
 pyplot.plot(x, incremental_, label=incremental, marker=markers[4], ms=12, color=colors[4], ls='-', markeredgewidth=4)
 pyplot.plot(x, pincmineraux_, label=pincmineraux, marker=markers[5], ms=12, color=colors[5], ls='-', markeredgewidth=4)
 
-pyplot.ylabel('Running Time (s)', fontsize=18)
-pyplot.tick_params(labelsize=18)
+pyplot.ylabel('Running Time (s)', fontsize=22)
+pyplot.tick_params(labelsize=22)
 pyplot.xticks(np.arange(5), x_labels)
 pyplot.yscale('log')
 pyplot.savefig("./figures/ncvoter_varying_n.pdf", dpi=200, bbox_inches='tight')
@@ -438,8 +463,8 @@ pyplot.plot(x, batchminer_, label=batchminer, marker=markers[1], ms=12, color=co
 pyplot.plot(x, incremental_, label=incremental, marker=markers[4], ms=12, color=colors[4], ls='-', markeredgewidth=4)
 pyplot.plot(x, pincmineraux_, label=pincmineraux, marker=markers[5], ms=12, color=colors[5], ls='-', markeredgewidth=4)
 
-pyplot.ylabel('Running Time (s)', fontsize=18)
-pyplot.tick_params(labelsize=18)
+pyplot.ylabel('Running Time (s)', fontsize=22)
+pyplot.tick_params(labelsize=22)
 pyplot.xticks(np.arange(5), x_labels)
 pyplot.yscale('log')
 pyplot.savefig("./figures/dblp_varying_n.pdf", dpi=200, bbox_inches='tight')
@@ -469,9 +494,9 @@ lines.append(pyplot.plot(x, dd[2], label=labels[2], marker=markers_bd[2], ms=12,
 lines.append(pyplot.plot(x, dd[3], label=labels[3], marker=markers_bd[3], ms=12, ls='-', markeredgewidth=4)[0])
 lines.append(pyplot.plot(x, dd[4], label=labels[4], marker=markers_bd[4], ms=12, ls='-', markeredgewidth=4)[0])
 
-pyplot.ylabel('Running Time (s)', fontsize=18)
+pyplot.ylabel('Running Time (s)', fontsize=22)
 pyplot.yscale('log')
-pyplot.tick_params(labelsize=18)
+pyplot.tick_params(labelsize=22)
 pyplot.xticks(np.arange(5), x_labels)
 pyplot.legend(lines, labels, loc='upper center', bbox_to_anchor=(0.5, 1.15), ncol=5, fontsize=18)
 
@@ -492,17 +517,17 @@ memory = [195.1361313, 190.3718719, 243.1569366, 331.6322479, 518.3354721, 757.4
 ax1 = fig.add_subplot(111)
 
 color1 = 'tab:blue'
-ax1.set_ylabel('Runtime (s)', color=color1, fontsize=18)
+ax1.set_ylabel('Runtime (s)', color=color1, fontsize=22)
 line1, = ax1.plot(w, runtime, color=color1, marker='o', label='Runtime', ms=12, ls='-', markeredgewidth=4)
-ax1.tick_params(axis='y', labelcolor=color1)
-ax1.tick_params(axis='x', labelsize=18)
+ax1.tick_params(axis='y', labelcolor=color1, labelsize=22)
+ax1.tick_params(axis='x', labelsize=22)
 
 ax2 = ax1.twinx()
 
 color2 = 'tab:red'
-ax2.set_ylabel('Memory (MB)', color=color2, fontsize=18)
+ax2.set_ylabel('Memory (MB)', color=color2, fontsize=22)
 line2, = ax2.plot(w, memory, color=color2, marker='s', label='Memory', ms=12, ls='-', markeredgewidth=4)
-ax2.tick_params(axis='y', labelcolor=color2)
+ax2.tick_params(axis='y', labelcolor=color2, labelsize=22)
 ax2.set_yscale('log')
 
 ax1.legend([line1, line2], ['Runtime', 'Memory'], loc='upper center', bbox_to_anchor=(0.5, 1.15), ncol=2, fontsize=18)
@@ -524,17 +549,17 @@ ax1 = fig.add_subplot(111)
 ax1.set_xticks(h)
 
 color1 = 'tab:blue'
-ax1.set_ylabel('Runtime (s)', color=color1, fontsize=18)
+ax1.set_ylabel('Runtime (s)', color=color1, fontsize=22)
 line1, = ax1.plot(h, runtime, color=color1, marker='o', label='Runtime', ms=12, ls='-', markeredgewidth=4)
-ax1.tick_params(axis='y', labelcolor=color1, labelsize=18)
-ax1.tick_params(axis='x', labelsize=18)
+ax1.tick_params(axis='y', labelcolor=color1, labelsize=22)
+ax1.tick_params(axis='x', labelsize=22)
 
 ax2 = ax1.twinx()
 
 color2 = 'tab:red'
-ax2.set_ylabel('Memory (MB)', color=color2, fontsize=18)
+ax2.set_ylabel('Memory (MB)', color=color2, fontsize=22)
 line2, = ax2.plot(h, memory, color=color2, marker='s', label='Memory', ms=12, ls='-', markeredgewidth=4)
-ax2.tick_params(axis='y', labelcolor=color2, labelsize=18)
+ax2.tick_params(axis='y', labelcolor=color2, labelsize=22)
 
 ax1.legend([line1, line2], ['Runtime', 'Memory'], loc='upper center', bbox_to_anchor=(0.5, 1.15), ncol=2, fontsize=18)
 
@@ -554,8 +579,8 @@ expected = [0.972817, 0.986044, 0.987786, 0.988464, 0.988825]
 line1, = pyplot.plot(h, actual, marker='o', label='Actual', ms=12, ls='-', markeredgewidth=4)
 line2, = pyplot.plot(h, expected, marker='s', label='Expected', ms=12, ls='-', markeredgewidth=4)
 
-pyplot.ylabel('Recall', fontsize=18)
-pyplot.tick_params(labelsize=18)
+pyplot.ylabel('Recall', fontsize=22)
+pyplot.tick_params(labelsize=22)
 pyplot.xticks(h)
 
 pyplot.legend([line1, line2], ['Actual', 'Expected'], loc='upper center', bbox_to_anchor=(0.5, 1.15), ncol=2, fontsize=18)

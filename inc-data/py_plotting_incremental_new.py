@@ -116,7 +116,8 @@ pyplot.plot(x, incremental_, label=incremental, marker=markers[4], ms=12, color=
 pyplot.plot(x, pincmineraux_, label=pincmineraux, marker=markers[5], ms=12, color=colors[5], ls='-', markeredgewidth=4)
 
 pyplot.ylabel('Running Time (s)', fontsize=22)
-pyplot.tick_params(labelsize=22)
+pyplot.tick_params(axis='y', labelsize=22)
+pyplot.tick_params(axis='x', labelsize=16)
 pyplot.xticks(np.arange(5), x_labels)
 pyplot.yscale('log')
 pyplot.savefig("./figures/ncvoter_varying_deltaD.pdf", dpi=200, bbox_inches='tight')
@@ -162,7 +163,8 @@ pyplot.plot(x, incremental_, label=incremental, marker=markers[4], ms=12, color=
 pyplot.plot(x, pincmineraux_, label=pincmineraux, marker=markers[5], ms=12, color=colors[5], ls='-', markeredgewidth=4)
 
 pyplot.ylabel('Running Time (s)', fontsize=22)
-pyplot.tick_params(labelsize=22)
+pyplot.tick_params(axis='y', labelsize=22)
+pyplot.tick_params(axis='x', labelsize=16)
 pyplot.xticks(np.arange(5), x_labels)
 pyplot.yscale('log')
 pyplot.savefig("./figures/dblp_varying_deltaD.pdf", dpi=200, bbox_inches='tight')

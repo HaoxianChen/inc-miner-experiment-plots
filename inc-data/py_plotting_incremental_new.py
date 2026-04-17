@@ -462,17 +462,18 @@ labels = ['F', 'S', 'E', 'R', 'C']
 markers_bd = ['P', 'X', 'h', 'H', 'D']
 x = np.arange(5)
 
-pyplot.plot(x, dd[0], label=labels[0], marker=markers_bd[0], ms=12, ls='-', markeredgewidth=4)
-pyplot.plot(x, dd[1], label=labels[1], marker=markers_bd[1], ms=12, ls='-', markeredgewidth=4)
-pyplot.plot(x, dd[2], label=labels[2], marker=markers_bd[2], ms=12, ls='-', markeredgewidth=4)
-pyplot.plot(x, dd[3], label=labels[3], marker=markers_bd[3], ms=12, ls='-', markeredgewidth=4)
-pyplot.plot(x, dd[4], label=labels[4], marker=markers_bd[4], ms=12, ls='-', markeredgewidth=4)
+lines = []
+lines.append(pyplot.plot(x, dd[0], label=labels[0], marker=markers_bd[0], ms=12, ls='-', markeredgewidth=4)[0])
+lines.append(pyplot.plot(x, dd[1], label=labels[1], marker=markers_bd[1], ms=12, ls='-', markeredgewidth=4)[0])
+lines.append(pyplot.plot(x, dd[2], label=labels[2], marker=markers_bd[2], ms=12, ls='-', markeredgewidth=4)[0])
+lines.append(pyplot.plot(x, dd[3], label=labels[3], marker=markers_bd[3], ms=12, ls='-', markeredgewidth=4)[0])
+lines.append(pyplot.plot(x, dd[4], label=labels[4], marker=markers_bd[4], ms=12, ls='-', markeredgewidth=4)[0])
 
 pyplot.ylabel('Running Time (s)', fontsize=18)
 pyplot.yscale('log')
 pyplot.tick_params(labelsize=18)
 pyplot.xticks(np.arange(5), x_labels)
-pyplot.legend(fontsize=18)
+pyplot.legend(lines, labels, loc='upper center', bbox_to_anchor=(0.5, 1.15), ncol=5, fontsize=18)
 
 pyplot.savefig('figures/dblp_add_breakdown.pdf', bbox_inches='tight')
 pyplot.close()
@@ -491,9 +492,8 @@ memory = [195.1361313, 190.3718719, 243.1569366, 331.6322479, 518.3354721, 757.4
 ax1 = fig.add_subplot(111)
 
 color1 = 'tab:blue'
-ax1.set_xlabel('w')
 ax1.set_ylabel('Runtime (s)', color=color1, fontsize=18)
-ax1.plot(w, runtime, color=color1, marker='o', label='Runtime', ms=12, ls='-', markeredgewidth=4)
+line1, = ax1.plot(w, runtime, color=color1, marker='o', label='Runtime', ms=12, ls='-', markeredgewidth=4)
 ax1.tick_params(axis='y', labelcolor=color1)
 ax1.tick_params(axis='x', labelsize=18)
 
@@ -501,13 +501,11 @@ ax2 = ax1.twinx()
 
 color2 = 'tab:red'
 ax2.set_ylabel('Memory (MB)', color=color2, fontsize=18)
-ax2.plot(w, memory, color=color2, marker='s', label='Memory', ms=12, ls='-', markeredgewidth=4)
+line2, = ax2.plot(w, memory, color=color2, marker='s', label='Memory', ms=12, ls='-', markeredgewidth=4)
 ax2.tick_params(axis='y', labelcolor=color2)
 ax2.set_yscale('log')
 
-lines1, labels1 = ax1.get_legend_handles_labels()
-lines2, labels2 = ax2.get_legend_handles_labels()
-ax1.legend(lines1 + lines2, labels1 + labels2, loc='upper left', fontsize=18)
+ax1.legend([line1, line2], ['Runtime', 'Memory'], loc='upper center', bbox_to_anchor=(0.5, 1.15), ncol=2, fontsize=18)
 
 pyplot.tight_layout()
 pyplot.savefig('figures/adult_varying_w.pdf', bbox_inches='tight')
@@ -526,9 +524,8 @@ ax1 = fig.add_subplot(111)
 ax1.set_xticks(h)
 
 color1 = 'tab:blue'
-ax1.set_xlabel('h', fontsize=18)
 ax1.set_ylabel('Runtime (s)', color=color1, fontsize=18)
-ax1.plot(h, runtime, color=color1, marker='o', label='Runtime', ms=12, ls='-', markeredgewidth=4)
+line1, = ax1.plot(h, runtime, color=color1, marker='o', label='Runtime', ms=12, ls='-', markeredgewidth=4)
 ax1.tick_params(axis='y', labelcolor=color1, labelsize=18)
 ax1.tick_params(axis='x', labelsize=18)
 
@@ -536,12 +533,10 @@ ax2 = ax1.twinx()
 
 color2 = 'tab:red'
 ax2.set_ylabel('Memory (MB)', color=color2, fontsize=18)
-ax2.plot(h, memory, color=color2, marker='s', label='Memory', ms=12, ls='-', markeredgewidth=4)
+line2, = ax2.plot(h, memory, color=color2, marker='s', label='Memory', ms=12, ls='-', markeredgewidth=4)
 ax2.tick_params(axis='y', labelcolor=color2, labelsize=18)
 
-lines1, labels1 = ax1.get_legend_handles_labels()
-lines2, labels2 = ax2.get_legend_handles_labels()
-ax1.legend(lines1 + lines2, labels1 + labels2, loc='upper right', fontsize=18)
+ax1.legend([line1, line2], ['Runtime', 'Memory'], loc='upper center', bbox_to_anchor=(0.5, 1.15), ncol=2, fontsize=18)
 
 pyplot.tight_layout()
 pyplot.savefig('figures/adult_varying_h.pdf', bbox_inches='tight')
@@ -556,15 +551,14 @@ h = [1, 3, 5, 7, 9]
 actual = [0.975, 0.975, 0.975, 0.975, 0.975]
 expected = [0.972817, 0.986044, 0.987786, 0.988464, 0.988825]
 
-pyplot.plot(h, actual, marker='o', label='Actual', ms=12, ls='-', markeredgewidth=4)
-pyplot.plot(h, expected, marker='s', label='Expected', ms=12, ls='-', markeredgewidth=4)
+line1, = pyplot.plot(h, actual, marker='o', label='Actual', ms=12, ls='-', markeredgewidth=4)
+line2, = pyplot.plot(h, expected, marker='s', label='Expected', ms=12, ls='-', markeredgewidth=4)
 
-pyplot.xlabel('h', fontsize=18)
 pyplot.ylabel('Recall', fontsize=18)
 pyplot.tick_params(labelsize=18)
 pyplot.xticks(h)
 
-pyplot.legend(fontsize=18)
+pyplot.legend([line1, line2], ['Actual', 'Expected'], loc='upper center', bbox_to_anchor=(0.5, 1.15), ncol=2, fontsize=18)
 pyplot.ylim(0.90, 1.0)
 pyplot.tight_layout()
 pyplot.savefig('figures/adult_recall_varying_h.pdf', bbox_inches='tight')

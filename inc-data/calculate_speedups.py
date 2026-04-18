@@ -19,7 +19,7 @@ print("-" * 70)
 
 # Using new data from notebook
 pincminer_plus = np.array([1.13, 3.21, 4.50])
-incdc_plus = np.array([832, 1749, 5000])
+incdc_plus = np.array([757.883, 5000, 5000])
 dc3_plus = np.array([11.779, 19.933, 30.489])
 
 speedup_incdc_plus = incdc_plus / pincminer_plus

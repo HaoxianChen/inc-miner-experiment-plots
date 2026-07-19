@@ -29,8 +29,8 @@ pincminer = "PIncMiner"
 batchminer = "BatchMiner"
 incdc = "IncDC"
 dc3 = "3DC"
-incremental = "PIncMiner$_{noCS}$"
-pincmineraux = "PIncMiner$_{Aux}$"
+incremental = r"PIncMiner$_{\mathsf{noCS}}$"
+pincmineraux = r"PIncMiner$_{\mathsf{noAux}}$"
 
 # Global style map: label -> {color, marker, markersize} for consistent naming and styling across plots
 
@@ -48,16 +48,18 @@ STYLE_MAP = {
     'BatchMiner': {'color': 'C1', 'marker': 's', 'markersize': MARKER_SIZE},
     'IncDC':      {'color': 'C2', 'marker': '^', 'markersize': MARKER_SIZE},
     '3DC':        {'color': 'C3', 'marker': 'd', 'markersize': MARKER_SIZE},
-    r'PIncMiner$_{noCS}$':  {'color': 'C4', 'marker': 'v', 'markersize': MARKER_SIZE},
+    r'PIncMiner$_{\mathsf{noCS}}$':  {'color': 'C4', 'marker': 'v', 'markersize': MARKER_SIZE},
     # r'Incremental':  {'color': 'C4', 'marker': 'v', 'markersize': MARKER_SIZE},
-    r'PIncMiner$_{noAux}$': {'color': 'C5', 'marker': 'p', 'markersize': MARKER_SIZE},
+    r'PIncMiner$_{\mathsf{noAux}}$': {'color': 'C5', 'marker': 'p', 'markersize': MARKER_SIZE},
+    r'PIncMiner$_{\mathsf{staticCorr}}$': {'color': 'C6', 'marker': 'X', 'markersize': MARKER_SIZE},
+    r'PIncMiner$_{\mathsf{Naive}}$':      {'color': 'C7', 'marker': 'P', 'markersize': MARKER_SIZE},
 }
 
 # Wide figure with legend only (shared across all figures)
 from matplotlib.lines import Line2D
-fig_legend = pyplot.figure(figsize=(6, 0.6))
+fig_legend = pyplot.figure(figsize=(8, 0.6))
 handles = [Line2D([], [], **{**STYLE_MAP[k], 'linestyle': '-'}, label=k) for k in STYLE_MAP]
-fig_legend.legend(handles=handles, ncol=6, loc='center', frameon=True)
+fig_legend.legend(handles=handles, ncol=8, loc='center', frameon=True)
 pyplot.axis('off')
 pyplot.tight_layout()
 os.makedirs('plots', exist_ok=True)
@@ -523,6 +525,8 @@ ax1.set_ylabel('Runtime (s)', color=color1, fontsize=22)
 line1, = ax1.plot(w, runtime, color=color1, marker='o', label='Runtime', ms=12, ls='-', markeredgewidth=4)
 ax1.tick_params(axis='y', labelcolor=color1, labelsize=22)
 ax1.tick_params(axis='x', labelsize=22)
+ax1.set_xticks(w[::2])  # Show every other tick
+ax1.set_xticklabels([f'$2^{{{i}}}$' for i in w[::2]])
 
 ax2 = ax1.twinx()
 

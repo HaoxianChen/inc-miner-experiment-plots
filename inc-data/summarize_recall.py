@@ -11,6 +11,8 @@ Examples:
   python summarize_recall.py --csv results-sep-8.csv
   python summarize_recall.py --csv results-sep-8.csv --variant pincminer \
       --output /tmp/pincminer_recall_detail.csv
+  python summarize_recall.py --csv results-sep-8.csv --panels f,h,i \
+      --group-by-workload
 """
 from __future__ import annotations
 
@@ -48,6 +50,22 @@ def dataset_name(row: dict[str, str], source: Path | None) -> str:
         match = DATASET_RE.search(candidate.lower())
         if match:
             return match.group(1).lower()
+    return "unknown"
+
+
+def workload_name(row: dict[str, str]) -> str:
+    """Classify an update using its recorded insertion and deletion counts."""
+    added = number(row.get("add_count")) or 0.0
+    deleted = number(row.get("del_count")) or 0.0
+    if added and not deleted:
+        return "insert"
+    if deleted and not added:
+        return "delete"
+    if added and deleted:
+        # Small rounding differences may occur when the same percentage is
+        # applied to two independently sampled update sets.
+        equal_tolerance = max(2.0, 0.005 * max(added, deleted))
+        return "mixed-equal" if abs(added - deleted) <= equal_tolerance else "mixed-unequal"
     return "unknown"
 
 
@@ -127,7 +145,7 @@ def print_summary(name: str, summary: dict[str, object]) -> None:
 def write_detail(path: Path, records: list[dict[str, object]]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     fields = [
-        "dataset", "source", "panel", "slot", "round", "variant", *RECALL_FIELDS,
+        "dataset", "workload", "source", "panel", "slot", "round", "variant", *RECALL_FIELDS,
         "gt_new_rules", "gt_invalid_rules",
     ]
     with path.open("w", newline="") as stream:
@@ -144,12 +162,18 @@ def main() -> None:
                         help="Experiment directory containing results.csv files")
     source.add_argument("--csv", type=Path, help="Flat exported results CSV")
     ap.add_argument("--variant", default="pincminer", help="Method to summarize")
+    ap.add_argument("--panels", type=lambda value: {item.strip() for item in value.split(",") if item.strip()},
+                    help="Optional comma-separated panel ids, e.g. f,h,i")
+    ap.add_argument("--group-by-workload", action="store_true",
+                    help="Print one summary per (dataset, update workload)")
     ap.add_argument("--output", type=Path, help="Optional per-record CSV output")
     args = ap.parse_args()
 
     records: list[dict[str, object]] = []
     for source_path, row in input_rows(args):
         if row.get("variant") != args.variant:
+            continue
+        if args.panels and row.get("panel") not in args.panels:
             continue
         records.append({
             "dataset": dataset_name(row, source_path),
@@ -158,6 +182,7 @@ def main() -> None:
             "slot": row.get("slot", ""),
             "round": row.get("round", ""),
             "variant": args.variant,
+            "workload": workload_name(row),
             **{field: number(row.get(field)) for field in RECALL_FIELDS},
             "gt_new_rules": number(row.get("gt_new_rules")) or 0.0,
             "gt_invalid_rules": number(row.get("gt_invalid_rules")) or 0.0,
@@ -170,10 +195,14 @@ def main() -> None:
     print(f"variant={args.variant}; records={len(records)}")
     print_summary("ALL", summarize(records))
     grouped: dict[str, list[dict[str, object]]] = defaultdict(list)
-    for record in records:
-        grouped[str(record["dataset"])].append(record)
-    for dataset in sorted(grouped):
-        print_summary(dataset, summarize(grouped[dataset]))
+    if args.group_by_workload:
+        for record in records:
+            grouped[f"{record['dataset']} / {record['workload']}"].append(record)
+    else:
+        for record in records:
+            grouped[str(record["dataset"])].append(record)
+    for name in sorted(grouped):
+        print_summary(name, summarize(grouped[name]))
 
 
 if __name__ == "__main__":

@@ -13,6 +13,8 @@ Examples:
       --output /tmp/pincminer_recall_detail.csv
   python summarize_recall.py --csv results-sep-8.csv --panels f,h,i \
       --group-by-workload
+  python summarize_recall.py --csv results-sep-8.csv --update-ratio-only \
+      --group-by-workload
 """
 from __future__ import annotations
 
@@ -38,6 +40,9 @@ PANEL_DATASET = {
     "i": "ncvoter", "j": "ncvoter", "k": "ncvoter", "l": "dblp",
     "m": "ncvoter", "n": "ncvoter", "o": "inspection", "p": "inspection",
 }
+# Panels whose x-axis is an insertion/deletion update ratio. This excludes
+# sketch, threshold, dataset-size, AFF, P0, and repeated-update experiments.
+UPDATE_RATIO_PANELS = {"d", "e", "f", "g", "h", "i", "j", "m"}
 
 
 def number(value: str | None) -> float | None:
@@ -74,10 +79,7 @@ def workload_name(row: dict[str, str]) -> str:
     if deleted and not added:
         return "delete"
     if added and deleted:
-        # Small rounding differences may occur when the same percentage is
-        # applied to two independently sampled update sets.
-        equal_tolerance = max(2.0, 0.005 * max(added, deleted))
-        return "mixed-equal" if abs(added - deleted) <= equal_tolerance else "mixed-unequal"
+        return "mixed"
     return "unknown"
 
 
@@ -176,16 +178,24 @@ def main() -> None:
     ap.add_argument("--variant", default="pincminer", help="Method to summarize")
     ap.add_argument("--panels", type=lambda value: {item.strip() for item in value.split(",") if item.strip()},
                     help="Optional comma-separated panel ids, e.g. f,h,i")
+    ap.add_argument("--update-ratio-only", action="store_true",
+                    help="Keep only panels d,e,f,g,h,i,j,m, whose x-axis varies update ratio")
     ap.add_argument("--group-by-workload", action="store_true",
                     help="Print one summary per (dataset, update workload)")
     ap.add_argument("--output", type=Path, help="Optional per-record CSV output")
     args = ap.parse_args()
 
     records: list[dict[str, object]] = []
+    selected_panels = args.panels
+    if args.update_ratio_only:
+        selected_panels = (
+            UPDATE_RATIO_PANELS if selected_panels is None
+            else selected_panels & UPDATE_RATIO_PANELS
+        )
     for source_path, row in input_rows(args):
         if row.get("variant") != args.variant:
             continue
-        if args.panels and row.get("panel") not in args.panels:
+        if selected_panels and row.get("panel") not in selected_panels:
             continue
         records.append({
             "dataset": dataset_name(row, source_path),

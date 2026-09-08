@@ -30,6 +30,15 @@ DATASET_RE = re.compile(
 )
 RECALL_FIELDS = ("recall", "recall_plus", "recall_minus")
 
+# The exported CSV leaves ``dataset`` blank for most rows. These assignments
+# follow the experiment panel layout documented with results-sep-8.csv.
+PANEL_DATASET = {
+    "a": "dblp", "b": "dblp", "c": "adult", "d": "dblp",
+    "e": "dblp", "f": "dblp", "g": "ncvoter", "h": "ncvoter",
+    "i": "ncvoter", "j": "ncvoter", "k": "ncvoter", "l": "dblp",
+    "m": "ncvoter", "n": "ncvoter", "o": "inspection", "p": "inspection",
+}
+
 
 def number(value: str | None) -> float | None:
     """Return a numeric CSV value, or None for an unavailable value."""
@@ -43,6 +52,9 @@ def number(value: str | None) -> float | None:
 
 def dataset_name(row: dict[str, str], source: Path | None) -> str:
     """Infer a canonical dataset name from explicit metadata or a source path."""
+    panel = row.get("panel", "")
+    if panel in PANEL_DATASET:
+        return PANEL_DATASET[panel]
     candidates = [row.get("dataset", ""), row.get("csv_path", "")]
     if source is not None:
         candidates.append(str(source))

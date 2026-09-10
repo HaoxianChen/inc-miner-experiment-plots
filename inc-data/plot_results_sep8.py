@@ -36,27 +36,29 @@ FIGSIZE = (6.4, 4.8)
 METHODS = {
     "pincminer": ("PIncMiner", "C0", "o"),
     "batch": ("BatchMiner", "C1", "s"),
+    "incdc": ("IncDC", "C2", "^"),
+    "dc3": ("3DC", "C3", "d"),
     "nocs": (r"PIncMiner$_{\mathsf{noCS}}$", "C4", "v"),
     "noaux": (r"PIncMiner$_{\mathsf{noAux}}$", "C5", "p"),
     "staticcorr": (r"PIncMiner$_{\mathsf{staticCorr}}$", "C6", "X"),
 }
 METHOD_ORDER = tuple(METHODS)
-# Shown only in the shared legend; the sep-8 CSV has no IncDC/3DC rows.
-LEGEND_EXTRAS = {
-    "incdc": ("IncDC", "C2", "^"),
-    "dc3": ("3DC", "C3", "d"),
-}
-LEGEND_ORDER = METHOD_ORDER + tuple(LEGEND_EXTRAS)
-BASELINE_ORDER = ("batch", "nocs", "noaux", "staticcorr")
-# Distinct from METHODS markers (o, s, v, p, X).
+LEGEND_ORDER = METHOD_ORDER
+BASELINE_ORDER = ("batch", "incdc", "dc3", "nocs", "noaux", "staticcorr")
+# Distinct from METHODS markers (o, s, v, p, X, ^, d).
 EXPECTED_MARKER = "D"
 PLAIN_NAMES = {
     "pincminer": "PIncMiner",
     "batch": "BatchMiner",
+    "incdc": "IncDC",
+    "dc3": "3DC",
     "nocs": "PIncMiner_noCS",
     "noaux": "PIncMiner_noAux",
     "staticcorr": "PIncMiner_staticCorr",
 }
+ERRORBAR_CAPSIZE = 4
+OOM_SECONDS = 5000.0
+DC_METHODS = frozenset({"incdc", "dc3"})
 
 # Panels d-p, using the same slots as the corresponding plots.
 SPEEDUP_PANELS: tuple[tuple[str, tuple[str, ...]], ...] = (
@@ -119,46 +121,104 @@ def one(rows: Iterable[dict[str, str]], **match: str) -> dict[str, str] | None:
     return found[0] if found else None
 
 
-def finish(fig: plt.Figure, ax: plt.Axes, output: Path, ylabel: str, log_y: bool = False) -> None:
+def finish(fig: plt.Figure, ax: plt.Axes, output: Path, ylabel: str,
+           log_y: bool = False, tight: bool = True) -> None:
     ax.set_xlabel("")
     ax.set_ylabel(ylabel, fontsize=22)
     ax.tick_params(axis="both", labelsize=TICK_LABEL_SIZE)
     if log_y:
         ax.set_yscale("log")
-    fig.tight_layout()
+    if tight:
+        fig.tight_layout()
     output.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(output, dpi=200, bbox_inches="tight")
     plt.close(fig)
     print(f"saved: {output}")
 
 
+def is_dc_oom(method: str, value: float | None) -> bool:
+    """IncDC/3DC store OutOfMemory as 5000 s in the CSV; do not plot that value."""
+    return method in DC_METHODS and value is not None and value >= OOM_SECONDS
+
+
 def plot_method(ax: plt.Axes, xs: list[float], ys: list[float], method: str) -> None:
     label, color, marker = METHODS[method]
+    pairs = [(x, y) for x, y in zip(xs, ys) if not math.isnan(y)]
+    if not pairs:
+        return
+    xs, ys = [x for x, _ in pairs], [y for _, y in pairs]
     ax.plot(xs, ys, color=color, marker=marker, ms=MARKER_SIZE,
             markeredgewidth=4, linewidth=1.8, linestyle="-", label=label)
 
 
+def _axis_break_marks(ax_top: plt.Axes, ax_bot: plt.Axes) -> None:
+    kwargs = dict(color="k", clip_on=False, linewidth=1.0)
+    d = 0.012
+    ax_bot.plot((-d, +d), (1 - d, 1 + d), transform=ax_bot.transAxes, **kwargs)
+    ax_bot.plot((1 - d, 1 + d), (1 - d, 1 + d), transform=ax_bot.transAxes, **kwargs)
+    ax_top.plot((-d, +d), (-d, +d), transform=ax_top.transAxes, **kwargs)
+    ax_top.plot((1 - d, 1 + d), (-d, +d), transform=ax_top.transAxes, **kwargs)
+
+
 def categorical_runtime(
     rows: list[dict[str, str]], slots: tuple[str, ...], labels: tuple[str, ...],
-    output: Path, *, rotation: float = 0,
+    output: Path, *, rotation: float = 0, annotate_oom: bool = False,
 ) -> None:
-    fig, ax = plt.subplots(figsize=FIGSIZE)
     xs = list(range(len(slots)))
-    plotted = 0
+    series: list[tuple[str, list[float]]] = []
+    oom_series: list[tuple[str, list[float]]] = []
     for method in METHOD_ORDER:
         variant = "pincminer" if method == "batch" else method
         field = "batch_runtime_s" if method == "batch" else "inc_runtime_s"
         ys: list[float] = []
+        oom_ys: list[float] = []
         for slot in slots:
             row = one(rows, slot=slot, variant=variant)
             value = number(row, field) if row else None
-            ys.append(math.nan if value is None else value)
-        if all(math.isnan(value) for value in ys):
-            continue
-        plot_method(ax, xs, ys, method)
-        plotted += 1
-    if not plotted:
+            if is_dc_oom(method, value):
+                ys.append(math.nan)
+                oom_ys.append(1.0)
+            else:
+                ys.append(math.nan if value is None else value)
+                oom_ys.append(math.nan)
+        if not all(math.isnan(value) for value in ys):
+            series.append((method, ys))
+        if not all(math.isnan(value) for value in oom_ys):
+            oom_series.append((method, oom_ys))
+    if not series:
         raise ValueError("no runtime values available")
+    if annotate_oom and oom_series:
+        fig, (ax_to, ax) = plt.subplots(
+            2, 1, sharex=True, figsize=FIGSIZE,
+            gridspec_kw={"height_ratios": [1.05, 3.4], "hspace": 0.06},
+        )
+        for method, ys in series:
+            plot_method(ax, xs, ys, method)
+        for method, ys in oom_series:
+            plot_method(ax_to, xs, ys, method)
+        ax_to.set_ylim(0.35, 1.65)
+        ax_to.set_yticks([1.0])
+        ax_to.set_yticklabels(["TO"])
+        ax_to.tick_params(axis="x", bottom=False, labelbottom=False, labelsize=TICK_LABEL_SIZE)
+        ax_to.tick_params(axis="y", labelsize=TICK_LABEL_SIZE)
+        ax_to.spines["bottom"].set_visible(False)
+        ax.spines["top"].set_visible(False)
+        _axis_break_marks(ax_to, ax)
+        ax.set_xticks(xs, labels, rotation=rotation, ha="right" if rotation else "center")
+        ax.set_xlabel("")
+        ax.set_ylabel("")
+        ax.tick_params(axis="both", labelsize=TICK_LABEL_SIZE)
+        ax.set_yscale("log")
+        fig.supylabel("Running Time (s)", fontsize=22)
+        fig.subplots_adjust(left=0.18, right=0.97, top=0.97, bottom=0.12)
+        output.parent.mkdir(parents=True, exist_ok=True)
+        fig.savefig(output, dpi=200, bbox_inches="tight")
+        plt.close(fig)
+        print(f"saved: {output}")
+        return
+    fig, ax = plt.subplots(figsize=FIGSIZE)
+    for method, ys in series:
+        plot_method(ax, xs, ys, method)
     ax.set_xticks(xs, labels, rotation=rotation, ha="right" if rotation else "center")
     finish(fig, ax, output, "Running Time (s)", log_y=True)
 
@@ -176,15 +236,20 @@ def recall_by_depth(rows: list[dict[str, str]], output: Path) -> None:
     slots = ("h1", "h3", "h5", "h7", "h9")
     depths = [1, 3, 5, 7, 9]
     actual: list[float] = []
+    yerr: list[float] = []
     for slot in slots:
         row = one(rows, slot=slot, variant="pincminer")
         value = number(row, "recall") if row else None
         if value is None:
             raise ValueError(f"panel c lacks PIncMiner recall for {slot}")
         actual.append(value)
+        yerr.append(number(row, "recall_std") or 0.0)
     predicted = [expected_recall(depth) for depth in depths]
     fig, ax = plt.subplots(figsize=FIGSIZE)
-    plot_method(ax, depths, actual, "pincminer")
+    _, color, marker = METHODS["pincminer"]
+    ax.errorbar(depths, actual, yerr=yerr, color=color, marker=marker, ms=MARKER_SIZE,
+                markeredgewidth=4, linewidth=1.8, linestyle="-", capsize=ERRORBAR_CAPSIZE,
+                label=METHODS["pincminer"][0])
     ax.plot(depths, predicted, color="C1", marker=EXPECTED_MARKER, ms=MARKER_SIZE,
             markeredgewidth=4, linewidth=1.8, linestyle="-", label="Expected")
     ax.set_xticks(depths)
@@ -241,14 +306,21 @@ def sketch_runtime_memory(rows: list[dict[str, str]], panel: str, output: Path) 
     xs = ([16, 18, 20, 22, 24] if panel == "a" else [1, 3, 5, 7, 9])
     labels = ([rf"$2^{{{x}}}$" for x in xs] if panel == "a" else [str(x) for x in xs])
     selected = [one(rows, slot=slot, variant="pincminer") for slot in slots]
-    runtime = [number(row, "inc_runtime_s") for row in selected]
-    memory = [number(row, "peak_mem_mb") for row in selected]
+    runtime = [number(row, "inc_runtime_s") if row else None for row in selected]
+    memory = []
+    for row in selected:
+        mem = number(row, "peak_mem_mb") if row else None
+        if mem is None and row is not None:
+            mem = number(row, "sk_mb")
+        memory.append(mem)
+    yerr = [(number(row, "inc_runtime_s_std") or 0.0) if row else 0.0 for row in selected]
     if any(value is None for value in runtime + memory):
         raise ValueError(f"panel {panel} lacks PIncMiner runtime or memory")
     fig, ax1 = plt.subplots(figsize=FIGSIZE)
     ax2 = ax1.twinx()
-    line1 = ax1.plot(xs, runtime, color="tab:blue", marker="o", ms=MARKER_SIZE,
-                     markeredgewidth=4, linewidth=1.8, label="Runtime")[0]
+    line1 = ax1.errorbar(xs, runtime, yerr=yerr, color="tab:blue", marker="o",
+                         ms=MARKER_SIZE, markeredgewidth=4, linewidth=1.8,
+                         capsize=ERRORBAR_CAPSIZE, label="Runtime")
     line2 = ax2.plot(xs, memory, color="tab:red", marker="s", ms=MARKER_SIZE,
                      markeredgewidth=4, linewidth=1.8, label="Memory")[0]
     ax1.set_xlabel("")
@@ -304,7 +376,8 @@ def slot_times(
     values: list[float | None] = []
     for slot in slots:
         row = one(rows, slot=slot, variant=variant)
-        values.append(number(row, field) if row else None)
+        value = number(row, field) if row else None
+        values.append(None if is_dc_oom(method, value) else value)
     return values
 
 
@@ -328,6 +401,7 @@ def report_speedups(rows: list[dict[str, str]], output: Path) -> None:
         "speedup = baseline_time / pincminer inc_runtime_s",
         "BatchMiner uses batch_runtime_s on the pincminer row",
         "mean is the arithmetic mean over plotted x-points (panel k: 10 rounds)",
+        "IncDC/3DC OOM (5000 s placeholder) is excluded from the plot and from speedups",
         "",
         f"{'panel':<6} {'vs':<22} {'n':>3} {'mean':>10} {'max':>10} {'n<1':>4}",
         "-" * 60,
@@ -369,7 +443,7 @@ def report_speedups(rows: list[dict[str, str]], output: Path) -> None:
 
 
 def shared_legend(output: Path) -> None:
-    styles = {**METHODS, **LEGEND_EXTRAS}
+    styles = METHODS
     fig = plt.figure(figsize=(12, 0.6))
     handles = [
         Line2D([], [], color=styles[method][1], marker=styles[method][2],
@@ -396,8 +470,8 @@ def generate(rows: list[dict[str, str]], output: Path) -> None:
         ("e", lambda: categorical_runtime(panel_rows(rows, "e"), ("a1d1", "a2d5", "a3d15", "a4d20", "a5d30"), (r"$(1\%,1\%)$", r"$(2\%,5\%)$", r"$(3\%,15\%)$", r"$(4\%,20\%)$", r"$(5\%,30\%)$"), output / "e-dblp-vary-delete-dominant.pdf", rotation=15)),
         ("f", lambda: categorical_runtime(panel_rows(rows, "f"), ("add1", "add5", "add15", "add20", "add30"), percent, output / "f-dblp-vary-add.pdf")),
         ("g", lambda: categorical_runtime(panel_rows(rows, "g"), ("del1", "del5", "del10", "del15", "del20", "del25", "del30"), (r"$1\%$", r"$5\%$", r"$10\%$", r"$15\%$", r"$20\%$", r"$25\%$", r"$30\%$"), output / "g-ncvoter-vary-delete.pdf")),
-        ("h", lambda: categorical_runtime(panel_rows(rows, "h"), ("add1", "add5", "add15", "add20", "add30"), percent, output / "h-ncvoter-vary-add.pdf")),
-        ("i", lambda: categorical_runtime(panel_rows(rows, "i"), ("del1", "del5", "del15", "del20", "del30"), percent, output / "i-ncvoter-ml40-vary-delete.pdf")),
+        ("h", lambda: categorical_runtime(panel_rows(rows, "h"), ("add1", "add5", "add15", "add20", "add30"), percent, output / "h-ncvoter-vary-add.pdf", annotate_oom=True)),
+        ("i", lambda: categorical_runtime(panel_rows(rows, "i"), ("del1", "del5", "del15", "del20", "del30"), percent, output / "i-ncvoter-ml40-vary-delete.pdf", annotate_oom=True)),
         ("j", lambda: breakdown_runtime(panel_rows(rows, "f"), output / "j-dblp-add-breakdown.pdf")),
         ("k", lambda: repeated_runtime(panel_rows(rows, "k"), output / "k-ncvoter-repeated-updates.pdf")),
         ("l", lambda: categorical_runtime(panel_rows(rows, "l"), ("d0.2", "d0.4", "d0.6", "d0.8", "d1.0"), (r"$20\%$", r"$40\%$", r"$60\%$", r"$80\%$", r"$100\%$"), output / "l-dblp-vary-dataset-size.pdf")),

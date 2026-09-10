@@ -2,6 +2,7 @@ PIncMiner speedup vs each plotted line (panels d-p)
 speedup = baseline_time / pincminer inc_runtime_s
 BatchMiner uses batch_runtime_s on the pincminer row
 mean is the arithmetic mean over plotted x-points (panel k: 10 rounds)
+IncDC/3DC OOM (5000 s placeholder) is excluded from the plot and from speedups
 
 panel  vs                       n       mean        max  n<1
 ------------------------------------------------------------
@@ -22,14 +23,17 @@ g      PIncMiner_noCS           7      3.08x      7.78x    0
 g      PIncMiner_noAux          7      3.06x      5.99x    0
 g      PIncMiner_staticCorr     7      0.96x      1.42x    5
 h      BatchMiner               5     11.35x     14.97x    0
+h      IncDC                    1    159.42x    159.42x    0
+h      3DC                      5      7.20x     11.56x    0
 h      PIncMiner_noCS           5      1.08x      1.26x    1
 h      PIncMiner_noAux          5     17.51x     19.76x    0
 h      PIncMiner_staticCorr     5      1.15x      1.46x    1
 i      BatchMiner               5     11.12x     14.07x    0
+i      3DC                      2     22.87x     44.04x    0
 i      PIncMiner_noCS           5      1.08x      1.54x    3
 i      PIncMiner_noAux          5     14.49x     18.94x    0
 i      PIncMiner_staticCorr     5      1.01x      1.06x    2
-j      BatchMiner               7      4.46x     10.31x    1
+j      (F/S/E/R/C breakdown) 
 k      BatchMiner              10      6.76x      7.29x    0
 k      PIncMiner_noCS          10      1.26x      1.36x    0
 k      PIncMiner_noAux         10      7.19x      7.81x    0

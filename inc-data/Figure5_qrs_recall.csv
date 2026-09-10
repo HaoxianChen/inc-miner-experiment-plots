@@ -1,0 +1,16 @@
+panel,slot,x,variant,recall,recall_plus,recall_minus,tp,fp,fn,gt_new_rules,gt_invalid_rules,inc_runtime_s,source
+q,del1,1,pincminer,1,1,1,226.0,0.0,0.0,0.0,0.0,8.864927902,exp2026_v7/sweeps/paper_supp_recall_sketch/g_dblp_union_delete/del1/results.csv
+q,del5,5,pincminer,1,1,1,226.0,0.0,0.0,0.0,0.0,14.982101857,exp2026_v7/sweeps/paper_supp_recall_sketch/g_dblp_union_delete/del5/results.csv
+q,del15,15,pincminer,1,1,1,227.0,0.0,0.0,1.0,0.0,41.501538374,exp2026_v7/sweeps/paper_supp_recall_sketch/g_dblp_union_delete/del15/results.csv
+q,del20,20,pincminer,1,1,1,227.0,1.0,0.0,1.0,0.0,71.164220671,exp2026_v7/sweeps/paper_supp_recall_sketch/g_dblp_union_delete/del20/results.csv
+q,del30,30,pincminer,1,1,1,226.0,1.0,0.0,0.0,0.0,248.77544974699998,exp2026_v7/sweeps/paper_supp_recall_sketch/g_dblp_union_delete/del30/results.csv
+r,a1d1,0,pincminer,1,1,1,80,10,0,0,0,65.708425122,exp2026_v7/sweeps/f5_mcorr_v280/d_ncvoter_adddom/a1d1/results.csv
+r,a5d2,1,pincminer,1,1,1,80,13,0,0,0,68.88897009,exp2026_v7/sweeps/f5_mcorr_v280/d_ncvoter_adddom/a5d2/results.csv
+r,a15d3,2,pincminer,1,1,1,80,15,0,0,0,115.878782181,exp2026_v7/sweeps/f5_mcorr_v280/d_ncvoter_adddom/a15d3/results.csv
+r,a20d4,3,pincminer,1,1,1,80,10,0,0,0,97.536849799,exp2026_v7/sweeps/f5_mcorr_v280/d_ncvoter_adddom/a20d4/results.csv
+r,a30d5,4,pincminer,1,1,1,80,10,0,0,0,104.070820586,exp2026_v7/sweeps/f5_mcorr_v280/d_ncvoter_adddom/a30d5/results.csv
+s,a1d1,0,pincminer,1,1,1,80,10,0,0,0,9.205903844,exp2026_v7/sweeps/f5_mcorr_v250/d_ncvoter_mixed/a1d1/results.csv
+s,a2d5,1,pincminer,1,1,1,80,14,0,0,0,12.526327067,exp2026_v7/sweeps/f5_mcorr_v250/d_ncvoter_mixed/a2d5/results.csv
+s,a3d15,2,pincminer,1,1,1,80,8,0,0,0,8.609122932,exp2026_v7/sweeps/f5_mcorr_v250/d_ncvoter_mixed/a3d15/results.csv
+s,a4d20,3,pincminer,1,1,1,80,13,0,0,0,13.836763817,exp2026_v7/sweeps/f5_mcorr_v250/d_ncvoter_mixed/a4d20/results.csv
+s,a5d30,4,pincminer,1,1,1,80,11,0,0,0,12.113443287,exp2026_v7/sweeps/f5_mcorr_v250/d_ncvoter_mixed/a5d30/results.csv

@@ -1,0 +1,16 @@
+panel,slot,variant,n_sketch_seeds,sketch_seeds,inc_runtime_s,inc_runtime_s_std,sk_mb,sk_mb_std,recall_plus,recall_plus_std,recall,recall_std,source
+a,w1048576,pincminer,5,"9173,28401,55019,731,44887",28.631748303400002,0.943128192885421,41.94304,0.0,1.0,0.0,1.0,0.0,exp2026_v7/sweeps/paper_supp_recall_sketch/a_dblp_union_width/agg/w1048576/results.csv
+a,w16777216,pincminer,5,"9173,28401,55019,731,44887",25.501701357199998,2.793797681097314,671.08864,0.0,1.0,0.0,1.0,0.0,exp2026_v7/sweeps/paper_supp_recall_sketch/a_dblp_union_width/agg/w16777216/results.csv
+a,w262144,pincminer,5,"9173,28401,55019,731,44887",26.287079894999998,3.2306573761101998,10.48576,0.0,1.0,0.0,1.0,0.0,exp2026_v7/sweeps/paper_supp_recall_sketch/a_dblp_union_width/agg/w262144/results.csv
+a,w4194304,pincminer,5,"9173,28401,55019,731,44887",26.1520814438,2.786751130238983,167.77216,0.0,1.0,0.0,1.0,0.0,exp2026_v7/sweeps/paper_supp_recall_sketch/a_dblp_union_width/agg/w4194304/results.csv
+a,w65536,pincminer,5,"9173,28401,55019,731,44887",32.191161540799996,8.188093937834653,2.62144,0.0,1.0,0.0,1.0,0.0,exp2026_v7/sweeps/paper_supp_recall_sketch/a_dblp_union_width/agg/w65536/results.csv
+b,h1,pincminer,5,"9173,28401,55019,731,44887",26.6378510402,3.098374119110669,2.097152,0.0,1.0,0.0,1.0,0.0,exp2026_v7/sweeps/paper_supp_recall_sketch/b_dblp_union_depth/agg/h1/results.csv
+b,h3,pincminer,5,"9173,28401,55019,731,44887",26.834448193999997,2.9940995010004157,6.291456,0.0,1.0,0.0,1.0,0.0,exp2026_v7/sweeps/paper_supp_recall_sketch/b_dblp_union_depth/agg/h3/results.csv
+b,h5,pincminer,5,"9173,28401,55019,731,44887",26.295424564199998,5.099909119927729,10.48576,0.0,1.0,0.0,1.0,0.0,exp2026_v7/sweeps/paper_supp_recall_sketch/b_dblp_union_depth/agg/h5/results.csv
+b,h7,pincminer,5,"9173,28401,55019,731,44887",28.599713574599996,3.0774746986635466,14.680063999999998,1.9860273225978185e-15,1.0,0.0,1.0,0.0,exp2026_v7/sweeps/paper_supp_recall_sketch/b_dblp_union_depth/agg/h7/results.csv
+b,h9,pincminer,5,"9173,28401,55019,731,44887",30.483090937999997,3.986551378438013,18.874368,0.0,1.0,0.0,1.0,0.0,exp2026_v7/sweeps/paper_supp_recall_sketch/b_dblp_union_depth/agg/h9/results.csv
+c,h1,pincminer,5,"9173,28401,55019,731,44887",3.6022333746,0.432520527150625,0.032768,0.0,1.0,0.0,1.0,0.0,exp2026_v7/sweeps/paper_supp_recall_sketch/c_adult_depth/agg/h1/results.csv
+c,h3,pincminer,5,"9173,28401,55019,731,44887",3.9793250149999997,0.7978113593685748,0.098304,0.0,1.0,0.0,1.0,0.0,exp2026_v7/sweeps/paper_supp_recall_sketch/c_adult_depth/agg/h3/results.csv
+c,h5,pincminer,5,"9173,28401,55019,731,44887",6.2055923082,2.9340986517957037,0.16384,0.0,1.0,0.0,1.0,0.0,exp2026_v7/sweeps/paper_supp_recall_sketch/c_adult_depth/agg/h5/results.csv
+c,h7,pincminer,5,"9173,28401,55019,731,44887",6.2810437188,1.1918237265295262,0.22937599999999997,3.1031676915590914e-17,1.0,0.0,1.0,0.0,exp2026_v7/sweeps/paper_supp_recall_sketch/c_adult_depth/agg/h7/results.csv
+c,h9,pincminer,5,"9173,28401,55019,731,44887",6.8957268434,1.9126114864868078,0.294912,0.0,1.0,0.0,1.0,0.0,exp2026_v7/sweeps/paper_supp_recall_sketch/c_adult_depth/agg/h9/results.csv

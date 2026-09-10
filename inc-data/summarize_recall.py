@@ -39,10 +39,11 @@ PANEL_DATASET = {
     "e": "dblp", "f": "dblp", "g": "ncvoter", "h": "ncvoter",
     "i": "ncvoter", "j": "ncvoter", "k": "ncvoter", "l": "dblp",
     "m": "ncvoter", "n": "ncvoter", "o": "inspection", "p": "inspection",
+    "q": "dblp", "r": "ncvoter", "s": "ncvoter",
 }
 # Panels whose x-axis is an insertion/deletion update ratio. This excludes
 # sketch, threshold, dataset-size, AFF, P0, and repeated-update experiments.
-UPDATE_RATIO_PANELS = {"d", "e", "f", "g", "h", "i", "j", "m"}
+UPDATE_RATIO_PANELS = {"d", "e", "f", "g", "h", "i", "j", "m", "q", "r", "s"}
 
 
 def number(value: str | None) -> float | None:
@@ -71,7 +72,21 @@ def dataset_name(row: dict[str, str], source: Path | None) -> str:
 
 
 def workload_name(row: dict[str, str]) -> str:
-    """Classify an update using its recorded insertion and deletion counts."""
+    """Classify an update using slot names, update_type, or insert/delete counts."""
+    slot = (row.get("slot") or "").lower()
+    if slot.startswith("add") and "d" not in slot[3:]:
+        return "insert"
+    if slot.startswith("del"):
+        return "delete"
+    if re.match(r"a\d+d\d+", slot):
+        return "mixed"
+    update = (row.get("update_type") or "").lower()
+    if update in {"add", "insert"}:
+        return "insert"
+    if update in {"delete", "del"}:
+        return "delete"
+    if update in {"mix", "mixed"}:
+        return "mixed"
     added = number(row.get("add_count")) or 0.0
     deleted = number(row.get("del_count")) or 0.0
     if added and not deleted:
@@ -179,7 +194,7 @@ def main() -> None:
     ap.add_argument("--panels", type=lambda value: {item.strip() for item in value.split(",") if item.strip()},
                     help="Optional comma-separated panel ids, e.g. f,h,i")
     ap.add_argument("--update-ratio-only", action="store_true",
-                    help="Keep only panels d,e,f,g,h,i,j,m, whose x-axis varies update ratio")
+                    help="Keep only update-ratio panels (d-j, m, q-s)")
     ap.add_argument("--group-by-workload", action="store_true",
                     help="Print one summary per (dataset, update workload)")
     ap.add_argument("--output", type=Path, help="Optional per-record CSV output")

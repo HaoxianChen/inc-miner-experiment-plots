@@ -1,0 +1,53 @@
+PIncMiner speedup vs each plotted line (panels d-p)
+speedup = baseline_time / pincminer inc_runtime_s
+BatchMiner uses batch_runtime_s on the pincminer row
+mean is the arithmetic mean over plotted x-points (panel k: 10 rounds)
+
+panel  vs                       n       mean        max  n<1
+------------------------------------------------------------
+d      BatchMiner               5      3.02x      6.29x    0
+d      PIncMiner_noCS           5      1.54x      2.24x    1
+d      PIncMiner_noAux          5      2.16x      4.17x    1
+d      PIncMiner_staticCorr     5      0.90x      0.94x    5
+e      BatchMiner               5      2.91x      5.83x    0
+e      PIncMiner_noCS           5      1.45x      2.27x    0
+e      PIncMiner_noAux          5      1.99x      4.13x    1
+e      PIncMiner_staticCorr     5      1.02x      1.20x    2
+f      BatchMiner               5     11.64x     15.16x    0
+f      PIncMiner_noCS           5      6.63x      7.81x    0
+f      PIncMiner_noAux          5      7.80x      9.01x    0
+f      PIncMiner_staticCorr     5      0.97x      1.11x    3
+g      BatchMiner               7      4.47x      9.67x    1
+g      PIncMiner_noCS           7      3.08x      7.78x    0
+g      PIncMiner_noAux          7      3.06x      5.99x    0
+g      PIncMiner_staticCorr     7      0.96x      1.42x    5
+h      BatchMiner               5     11.35x     14.97x    0
+h      PIncMiner_noCS           5      1.08x      1.26x    1
+h      PIncMiner_noAux          5     17.51x     19.76x    0
+h      PIncMiner_staticCorr     5      1.15x      1.46x    1
+i      BatchMiner               5     11.12x     14.07x    0
+i      PIncMiner_noCS           5      1.08x      1.54x    3
+i      PIncMiner_noAux          5     14.49x     18.94x    0
+i      PIncMiner_staticCorr     5      1.01x      1.06x    2
+j      BatchMiner               7      4.46x     10.31x    1
+k      BatchMiner              10      6.76x      7.29x    0
+k      PIncMiner_noCS          10      1.26x      1.36x    0
+k      PIncMiner_noAux         10      7.19x      7.81x    0
+k      PIncMiner_staticCorr    10      1.77x      1.98x    0
+l      BatchMiner               5     90.71x    108.19x    0
+l      PIncMiner_noCS           5      1.88x      2.50x    0
+l      PIncMiner_noAux          5     16.31x     24.79x    0
+l      PIncMiner_staticCorr     5      0.77x      1.06x    4
+m      (only PIncMiner plotted)
+n      BatchMiner               5      2.75x      3.43x    0
+n      PIncMiner_noCS           5      1.58x      2.01x    0
+n      PIncMiner_noAux          5      3.16x      3.50x    0
+n      PIncMiner_staticCorr     5      1.06x      1.93x    3
+o      BatchMiner               5     24.80x     37.93x    0
+o      PIncMiner_noCS           5      4.36x      6.65x    0
+o      PIncMiner_noAux          5     16.12x     26.06x    0
+o      PIncMiner_staticCorr     5      0.73x      0.91x    5
+p      BatchMiner               4     43.34x     44.65x    0
+p      PIncMiner_noCS           4      5.13x      7.89x    0
+p      PIncMiner_noAux          4      7.11x      7.90x    0
+p      PIncMiner_staticCorr     4      1.22x      1.65x    1

@@ -41,6 +41,39 @@ METHODS = {
     "staticcorr": (r"PIncMiner$_{\mathsf{staticCorr}}$", "C6", "X"),
 }
 METHOD_ORDER = tuple(METHODS)
+# Shown only in the shared legend; the sep-8 CSV has no IncDC/3DC rows.
+LEGEND_EXTRAS = {
+    "incdc": ("IncDC", "C2", "^"),
+    "dc3": ("3DC", "C3", "d"),
+}
+LEGEND_ORDER = METHOD_ORDER + tuple(LEGEND_EXTRAS)
+BASELINE_ORDER = ("batch", "nocs", "noaux", "staticcorr")
+# Distinct from METHODS markers (o, s, v, p, X).
+EXPECTED_MARKER = "D"
+PLAIN_NAMES = {
+    "pincminer": "PIncMiner",
+    "batch": "BatchMiner",
+    "nocs": "PIncMiner_noCS",
+    "noaux": "PIncMiner_noAux",
+    "staticcorr": "PIncMiner_staticCorr",
+}
+
+# Panels d-p, using the same slots as the corresponding plots.
+SPEEDUP_PANELS: tuple[tuple[str, tuple[str, ...]], ...] = (
+    ("d", ("a1d1", "a5d2", "a15d3", "a20d4", "a30d5")),
+    ("e", ("a1d1", "a2d5", "a3d15", "a4d20", "a5d30")),
+    ("f", ("add1", "add5", "add15", "add20", "add30")),
+    ("g", ("del1", "del5", "del10", "del15", "del20", "del25", "del30")),
+    ("h", ("add1", "add5", "add15", "add20", "add30")),
+    ("i", ("del1", "del5", "del15", "del20", "del30")),
+    ("j", ()),  # breakdown plot; F/S/E/R/C, not method lines
+    ("k", tuple(f"r{round_}" for round_ in range(10))),
+    ("l", ("d0.2", "d0.4", "d0.6", "d0.8", "d1.0")),
+    ("m", ()),  # AFF plot draws only PIncMiner
+    ("n", ("p20", "p25", "p30", "p35", "p40")),
+    ("o", ("sig1e-6", "sig1e-5", "sig1e-4", "sig1e-3", "sig1e-2")),
+    ("p", ("conf0.7", "conf0.8", "conf0.9", "conf0.95")),
+)
 
 
 def configure_style() -> None:
@@ -130,21 +163,76 @@ def categorical_runtime(
     finish(fig, ax, output, "Running Time (s)", log_y=True)
 
 
+def expected_recall(depth: int) -> float:
+    """Lemma 1: beta = Theta(e^{-h}), so expected recall is 1-beta = 1-e^{-h}.
+
+    Width w only sets the Count-Sketch error eps (w = Theta(eps^{-2})); it does not
+    enter the recall bound. Panel c holds w = 4096 and varies h.
+    """
+    return 1.0 - math.exp(-depth)
+
+
 def recall_by_depth(rows: list[dict[str, str]], output: Path) -> None:
     slots = ("h1", "h3", "h5", "h7", "h9")
+    depths = [1, 3, 5, 7, 9]
+    actual: list[float] = []
+    for slot in slots:
+        row = one(rows, slot=slot, variant="pincminer")
+        value = number(row, "recall") if row else None
+        if value is None:
+            raise ValueError(f"panel c lacks PIncMiner recall for {slot}")
+        actual.append(value)
+    predicted = [expected_recall(depth) for depth in depths]
     fig, ax = plt.subplots(figsize=FIGSIZE)
-    for method in ("pincminer", "nocs", "staticcorr"):
-        ys = []
+    plot_method(ax, depths, actual, "pincminer")
+    ax.plot(depths, predicted, color="C1", marker=EXPECTED_MARKER, ms=MARKER_SIZE,
+            markeredgewidth=4, linewidth=1.8, linestyle="-", label="Expected")
+    ax.set_xticks(depths)
+    ax.set_ylim(max(0.0, min(actual + predicted) - 0.03), 1.01)
+    ax.set_xlabel("")
+    ax.set_ylabel("Recall", fontsize=22)
+    ax.tick_params(axis="both", labelsize=TICK_LABEL_SIZE)
+    handles, labels = ax.get_legend_handles_labels()
+    fig.legend(handles, labels, loc="upper center", ncol=2, frameon=True,
+               bbox_to_anchor=(0.55, 0.98))
+    fig.subplots_adjust(top=0.85, bottom=0.12, left=0.16, right=0.96)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(output, dpi=200, bbox_inches="tight")
+    plt.close(fig)
+    print(f"saved: {output}")
+
+
+def breakdown_runtime(rows: list[dict[str, str]], output: Path) -> None:
+    """PIncMiner cost breakdown vs insert ratio (paper fig-breakdown)."""
+    slots = ("add1", "add5", "add15", "add20", "add30")
+    labels = (r"$1\%$", r"$5\%$", r"$15\%$", r"$20\%$", r"$30\%$")
+    components = (
+        ("F", "breakdown_F_s", "C0", "P"),
+        ("S", "breakdown_S_s", "C1", "X"),
+        ("E", "breakdown_E_s", "C2", "h"),
+        ("R", "breakdown_R_s", "C3", "H"),
+        ("C", "breakdown_C_s", "C4", "D"),
+    )
+    fig, ax = plt.subplots(figsize=FIGSIZE)
+    xs = list(range(len(slots)))
+    plotted = []
+    for label, field, color, marker in components:
+        ys: list[float] = []
         for slot in slots:
-            row = one(rows, slot=slot, variant=method)
-            value = number(row, "recall") if row else None
+            row = one(rows, slot=slot, variant="pincminer")
+            value = number(row, field) if row else None
             ys.append(math.nan if value is None else value)
-        if not all(math.isnan(value) for value in ys):
-            plot_method(ax, [1, 3, 5, 7, 9], ys, method)
-    ax.set_xticks([1, 3, 5, 7, 9])
-    finite = [value for line in ax.lines for value in line.get_ydata() if not math.isnan(value)]
-    ax.set_ylim(max(0.0, min(finite) - 0.01), 1.005)
-    finish(fig, ax, output, "Recall")
+        if all(math.isnan(value) or value <= 0 for value in ys):
+            continue
+        ax.plot(xs, ys, color=color, marker=marker, ms=MARKER_SIZE,
+                markeredgewidth=4, linewidth=1.8, linestyle="-", label=label)
+        plotted.append(label)
+    if not plotted:
+        raise ValueError("no breakdown values available")
+    ax.set_xticks(xs, labels)
+    ax.legend(loc="upper center", bbox_to_anchor=(0.5, 1.15),
+              ncol=len(plotted), frameon=True)
+    finish(fig, ax, output, "Running Time (s)", log_y=True)
 
 
 def sketch_runtime_memory(rows: list[dict[str, str]], panel: str, output: Path) -> None:
@@ -191,26 +279,102 @@ def aff_runtime(rows: list[dict[str, str]], output: Path) -> None:
         if row.get("variant") != "pincminer":
             continue
         x = number(row, "aff_total")
-        y = number(row, "inc_runtime_s")
-        if x is not None and y is not None:
-            points.append((x, y))
+        join = number(row, "aff_join_s")
+        relabel = number(row, "aff_relabel_s")
+        if x is None or join is None or relabel is None:
+            continue
+        points.append((x, join + relabel))
     if not points:
-        raise ValueError("panel m lacks AFF/runtime values")
+        raise ValueError("panel m lacks AFF join/relabel values")
     points.sort()
     fig, ax = plt.subplots(figsize=FIGSIZE)
     plot_method(ax, [x for x, _ in points], [y for _, y in points], "pincminer")
     ax.xaxis.set_major_locator(MaxNLocator(nbins=4))
     ax.xaxis.set_major_formatter(FuncFormatter(lambda value, _: f"{value:.1e}"))
     plt.setp(ax.get_xticklabels(), rotation=30, ha="right")
-    finish(fig, ax, output, "Running Time (s)", log_y=True)
+    finish(fig, ax, output, "Running Time (s)")
+
+
+def slot_times(
+    rows: list[dict[str, str]], slots: tuple[str, ...], method: str,
+) -> list[float | None]:
+    """Times matching the plotted lines: BatchMiner from the PIncMiner row."""
+    variant = "pincminer" if method == "batch" else method
+    field = "batch_runtime_s" if method == "batch" else "inc_runtime_s"
+    values: list[float | None] = []
+    for slot in slots:
+        row = one(rows, slot=slot, variant=variant)
+        values.append(number(row, field) if row else None)
+    return values
+
+
+def point_speedups(pinc: list[float | None], baseline: list[float | None]) -> list[float]:
+    ratios: list[float] = []
+    for ours, theirs in zip(pinc, baseline):
+        if ours is None or theirs is None or ours <= 0:
+            continue
+        ratios.append(theirs / ours)
+    return ratios
+
+
+def format_speedup(value: float) -> str:
+    return f"{value:.2f}x"
+
+
+def report_speedups(rows: list[dict[str, str]], output: Path) -> None:
+    """PIncMiner vs each plotted line on panels d-p: arithmetic mean and max."""
+    lines = [
+        "PIncMiner speedup vs each plotted line (panels d-p)",
+        "speedup = baseline_time / pincminer inc_runtime_s",
+        "BatchMiner uses batch_runtime_s on the pincminer row",
+        "mean is the arithmetic mean over plotted x-points (panel k: 10 rounds)",
+        "",
+        f"{'panel':<6} {'vs':<22} {'n':>3} {'mean':>10} {'max':>10} {'n<1':>4}",
+        "-" * 60,
+    ]
+    for panel, slots in SPEEDUP_PANELS:
+        selected = [row for row in rows if row.get("panel") == panel]
+        if not selected:
+            lines.append(f"{panel:<6} {'(no rows)':<22}")
+            continue
+        if panel == "j":
+            lines.append(f"{panel:<6} {'(F/S/E/R/C breakdown)':<22}")
+            continue
+        if panel == "m" or not slots:
+            lines.append(f"{panel:<6} {'(only PIncMiner plotted)':<22}")
+            continue
+        pinc = slot_times(selected, slots, "pincminer")
+        any_baseline = False
+        for method in BASELINE_ORDER:
+            baseline = slot_times(selected, slots, method)
+            ratios = point_speedups(pinc, baseline)
+            if not ratios:
+                continue
+            any_baseline = True
+            mean = sum(ratios) / len(ratios)
+            maximum = max(ratios)
+            slower = sum(1 for value in ratios if value < 1)
+            lines.append(
+                f"{panel:<6} {PLAIN_NAMES[method]:<22} {len(ratios):>3} "
+                f"{format_speedup(mean):>10} {format_speedup(maximum):>10} {slower:>4}"
+            )
+        if not any_baseline:
+            lines.append(f"{panel:<6} {'(no other plotted line)':<22}")
+    text = "\n".join(lines) + "\n"
+    output.mkdir(parents=True, exist_ok=True)
+    table_path = output / "speedup-table-d-p.txt"
+    table_path.write_text(text)
+    print(text, end="")
+    print(f"saved: {table_path}")
 
 
 def shared_legend(output: Path) -> None:
-    fig = plt.figure(figsize=(8, 0.6))
+    styles = {**METHODS, **LEGEND_EXTRAS}
+    fig = plt.figure(figsize=(12, 0.6))
     handles = [
-        Line2D([], [], color=METHODS[method][1], marker=METHODS[method][2],
-               markersize=8, markeredgewidth=4, linestyle="-", label=METHODS[method][0])
-        for method in METHOD_ORDER
+        Line2D([], [], color=styles[method][1], marker=styles[method][2],
+               markersize=8, markeredgewidth=4, linestyle="-", label=styles[method][0])
+        for method in LEGEND_ORDER
     ]
     fig.legend(handles=handles, ncol=len(handles), loc="center", frameon=True)
     plt.axis("off")
@@ -234,7 +398,7 @@ def generate(rows: list[dict[str, str]], output: Path) -> None:
         ("g", lambda: categorical_runtime(panel_rows(rows, "g"), ("del1", "del5", "del10", "del15", "del20", "del25", "del30"), (r"$1\%$", r"$5\%$", r"$10\%$", r"$15\%$", r"$20\%$", r"$25\%$", r"$30\%$"), output / "g-ncvoter-vary-delete.pdf")),
         ("h", lambda: categorical_runtime(panel_rows(rows, "h"), ("add1", "add5", "add15", "add20", "add30"), percent, output / "h-ncvoter-vary-add.pdf")),
         ("i", lambda: categorical_runtime(panel_rows(rows, "i"), ("del1", "del5", "del15", "del20", "del30"), percent, output / "i-ncvoter-ml40-vary-delete.pdf")),
-        ("j", lambda: categorical_runtime(panel_rows(rows, "j"), ("add1", "add5", "add10", "add15", "add20", "add25", "add30"), (r"$1\%$", r"$5\%$", r"$10\%$", r"$15\%$", r"$20\%$", r"$25\%$", r"$30\%$"), output / "j-ncvoter-vary-add-sigma.pdf")),
+        ("j", lambda: breakdown_runtime(panel_rows(rows, "f"), output / "j-dblp-add-breakdown.pdf")),
         ("k", lambda: repeated_runtime(panel_rows(rows, "k"), output / "k-ncvoter-repeated-updates.pdf")),
         ("l", lambda: categorical_runtime(panel_rows(rows, "l"), ("d0.2", "d0.4", "d0.6", "d0.8", "d1.0"), (r"$20\%$", r"$40\%$", r"$60\%$", r"$80\%$", r"$100\%$"), output / "l-dblp-vary-dataset-size.pdf")),
         ("m", lambda: aff_runtime(panel_rows(rows, "m"), output / "m-ncvoter-vary-aff.pdf")),
@@ -248,16 +412,23 @@ def generate(rows: list[dict[str, str]], output: Path) -> None:
         except ValueError as error:
             print(f"skipped {name}: {error}")
     print(f"done: {len(list(output.glob('*.pdf')))} PDFs in {output}")
+    report_speedups(rows, output)
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--csv", type=Path, required=True)
     parser.add_argument("--output", type=Path)
+    parser.add_argument("--speedup-only", action="store_true",
+                        help="Print the d-p speedup table without generating PDFs")
     args = parser.parse_args()
-    configure_style()
     output = args.output or args.csv.resolve().parent / "plots-results-sep-8"
-    generate(read_rows(args.csv), output)
+    rows = read_rows(args.csv)
+    if args.speedup_only:
+        report_speedups(rows, output)
+        return
+    configure_style()
+    generate(rows, output)
 
 
 if __name__ == "__main__":

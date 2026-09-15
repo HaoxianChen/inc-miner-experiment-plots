@@ -1,0 +1,2 @@
+DBLP UNION g del30 seed-remine SAMPLE_SEED=42
+image=harbor.grandhoo.com/rock/piod/incminer-exp:v306 VARIANTS=pincminer,nocs,noaux,naive,staticcorr

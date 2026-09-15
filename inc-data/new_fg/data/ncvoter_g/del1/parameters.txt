@@ -1,0 +1,28 @@
+第一期实验 fg seed remine NCVoter g seed=42 del1(exp202608_phase)
+
+数据集:            ncvoter_ml40
+lhs:               2
+workers:           20
+Count-Sketch:      w=262144, h=5(默认)
+σ:                 1e-6 -> minsup=int(σ|D|²); δ=0.8
+更新:              混合 ±1%N(默认; 实验特定档位见各自 run.py)
+模型 topK:         20
+变体:              PIncMiner / nocs / noaux / naive / staticcorr / featm-nocs / featm-noaux
+                   (旧五名 #10 语义不变; featm-* = feat-m 旗标, 不是 PIncMinerCS)
+gt:                batch 基线(同 workers + LegacyCal + 禁缓存 + 禁模型过滤 + 决策树开)
+镜像:              harbor.grandhoo.com/rock/piod/incminer-exp:v306
+
+全量新挖批次: v283; Figure 5 轴: (g)
+数据集: ncvoter_ml40; add=0.0; delete=0.01; rounds=1; ratio=1.0
+镜像: harbor.grandhoo.com/rock/piod/incminer-exp:v306
+落盘: /home/mdk/incremental-rule-discovery/exp2026_v7/sweeps/f5_mcorr_v283/_fg_seed_remine/ncvoter/g/del1
+v283 主图新矿：镜像现算 minSup=int(σ|D|²)；Step3 R 复用 Step2 F support。
+禁止用 v278（无现算 minSup）提本清单。(h)(i) σ=1e-6、DECISION_TREE=false。
+(k) 十轮 k_repeated（f283k 单 Job；v283 镜像）。nocs 仍只是 vSk=nil，不劣化。
+(a)(b)=DBLP UNION w/h（f283abd）；(d)=DBLP MIX5_D（f283dmixd）；主清单无 NCVoter-d。
+三变体同 Job：pincminer,nocs,noaux。不碰 f280 / f268-k01 Job。
+锁定口径: workers=20; paper-mcorr=true; mcorr-enter=enforce; tau_enter=0.85; T9=false; PRED_TOPK=0; 冷 Batch; train_alignment=match.
+VARIANTS=pincminer,nocs,noaux,naive,staticcorr; DECISION_TREE=true; SIGMA=axis/default.
+本目录禁止写入历史 CSV；结果只来自本 Job。
+cgroup peak (whole Job, not per-variant): [cgroup] memory.max_usage_in_bytes=117514125312 path=v1
+peak_mem_mb in results.csv is Go Alloc, not RSS/cgroup.

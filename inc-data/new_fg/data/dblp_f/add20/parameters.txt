@@ -1,0 +1,3 @@
+Figure 5(f) DBLP 4-table UNION aggregate.
+批次: f5_mcorr_v283; 档: add20.
+四个关系均为本批次 K8s 新跑；运行时间按关系求和，未复用历史 CSV。

@@ -1,0 +1,2 @@
+SAMPLE_SEED=17
+from=select_fg_batch_seeds

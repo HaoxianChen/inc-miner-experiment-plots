@@ -65,7 +65,7 @@ SPEEDUP_PANELS: tuple[tuple[str, tuple[str, ...]], ...] = (
     ("d", ("a1d1", "a5d2", "a15d3", "a20d4", "a30d5")),
     ("e", ("a1d1", "a2d5", "a3d15", "a4d20", "a5d30")),
     ("f", ("add1", "add5", "add15", "add20", "add30")),
-    ("g", ("del1", "del5", "del10", "del15", "del20", "del25", "del30")),
+    ("g", ("del1", "del5", "del15", "del20", "del30")),
     ("h", ("add1", "add5", "add15", "add20", "add30")),
     ("i", ("del1", "del5", "del15", "del20", "del30")),
     ("j", ()),  # breakdown plot; F/S/E/R/C, not method lines
@@ -112,6 +112,11 @@ def panel_rows(rows: Iterable[dict[str, str]], panel: str) -> list[dict[str, str
     if not selected:
         raise ValueError(f"panel {panel!r} has no rows")
     return selected
+
+
+def panel_dataset(rows: list[dict[str, str]], panel: str) -> str:
+    name = (panel_rows(rows, panel)[0].get("dataset") or "dblp").strip().lower()
+    return name or "dblp"
 
 
 def one(rows: Iterable[dict[str, str]], **match: str) -> dict[str, str] | None:
@@ -162,7 +167,7 @@ def _axis_break_marks(ax_top: plt.Axes, ax_bot: plt.Axes) -> None:
 
 def categorical_runtime(
     rows: list[dict[str, str]], slots: tuple[str, ...], labels: tuple[str, ...],
-    output: Path, *, rotation: float = 0, annotate_oom: bool = False,
+    output: Path, *, rotation: float = 0, annotate_oom: bool = False, log_y: bool = True,
 ) -> None:
     xs = list(range(len(slots)))
     series: list[tuple[str, list[float]]] = []
@@ -220,7 +225,7 @@ def categorical_runtime(
     for method, ys in series:
         plot_method(ax, xs, ys, method)
     ax.set_xticks(xs, labels, rotation=rotation, ha="right" if rotation else "center")
-    finish(fig, ax, output, "Running Time (s)", log_y=True)
+    finish(fig, ax, output, "Running Time (s)", log_y=log_y)
 
 
 def expected_recall(depth: int) -> float:
@@ -307,15 +312,10 @@ def sketch_runtime_memory(rows: list[dict[str, str]], panel: str, output: Path) 
     labels = ([rf"$2^{{{x}}}$" for x in xs] if panel == "a" else [str(x) for x in xs])
     selected = [one(rows, slot=slot, variant="pincminer") for slot in slots]
     runtime = [number(row, "inc_runtime_s") if row else None for row in selected]
-    memory = []
-    for row in selected:
-        mem = number(row, "peak_mem_mb") if row else None
-        if mem is None and row is not None:
-            mem = number(row, "sk_mb")
-        memory.append(mem)
+    memory = [number(row, "sk_mb") if row else None for row in selected]
     yerr = [(number(row, "inc_runtime_s_std") or 0.0) if row else 0.0 for row in selected]
     if any(value is None for value in runtime + memory):
-        raise ValueError(f"panel {panel} lacks PIncMiner runtime or memory")
+        raise ValueError(f"panel {panel} lacks PIncMiner runtime or sk_mb")
     fig, ax1 = plt.subplots(figsize=FIGSIZE)
     ax2 = ax1.twinx()
     line1 = ax1.errorbar(xs, runtime, yerr=yerr, color="tab:blue", marker="o",
@@ -326,6 +326,8 @@ def sketch_runtime_memory(rows: list[dict[str, str]], panel: str, output: Path) 
     ax1.set_xlabel("")
     ax1.set_ylabel("Runtime (s)", color="tab:blue", fontsize=22)
     ax2.set_ylabel("Memory (MB)", color="tab:red", fontsize=22)
+    if panel == "a":
+        ax2.set_yscale("log")
     ax1.tick_params(axis="y", labelcolor="tab:blue", labelsize=TICK_LABEL_SIZE)
     ax2.tick_params(axis="y", labelcolor="tab:red", labelsize=TICK_LABEL_SIZE)
     ax1.tick_params(axis="x", labelsize=TICK_LABEL_SIZE)
@@ -459,20 +461,22 @@ def shared_legend(output: Path) -> None:
     print(f"saved: {output}")
 
 
-def generate(rows: list[dict[str, str]], output: Path) -> None:
+def generate(rows: list[dict[str, str]], output: Path,
+             abc_rows: list[dict[str, str]] | None = None) -> None:
+    sketch = abc_rows if abc_rows is not None else rows
     percent = (r"$1\%$", r"$5\%$", r"$15\%$", r"$20\%$", r"$30\%$")
     jobs = [
         ("legend", lambda: shared_legend(output / "legend.pdf")),
-        ("a", lambda: sketch_runtime_memory(panel_rows(rows, "a"), "a", output / "a-dblp-vary-w.pdf")),
-        ("b", lambda: sketch_runtime_memory(panel_rows(rows, "b"), "b", output / "b-dblp-vary-h.pdf")),
-        ("c", lambda: recall_by_depth(panel_rows(rows, "c"), output / "c-adult-vary-h-recall.pdf")),
-        ("d", lambda: categorical_runtime(panel_rows(rows, "d"), ("a1d1", "a5d2", "a15d3", "a20d4", "a30d5"), (r"$(1\%,1\%)$", r"$(5\%,2\%)$", r"$(15\%,3\%)$", r"$(20\%,4\%)$", r"$(30\%,5\%)$"), output / "d-dblp-vary-add-dominant.pdf", rotation=15)),
-        ("e", lambda: categorical_runtime(panel_rows(rows, "e"), ("a1d1", "a2d5", "a3d15", "a4d20", "a5d30"), (r"$(1\%,1\%)$", r"$(2\%,5\%)$", r"$(3\%,15\%)$", r"$(4\%,20\%)$", r"$(5\%,30\%)$"), output / "e-dblp-vary-delete-dominant.pdf", rotation=15)),
-        ("f", lambda: categorical_runtime(panel_rows(rows, "f"), ("add1", "add5", "add15", "add20", "add30"), percent, output / "f-dblp-vary-add.pdf")),
-        ("g", lambda: categorical_runtime(panel_rows(rows, "g"), ("del1", "del5", "del10", "del15", "del20", "del25", "del30"), (r"$1\%$", r"$5\%$", r"$10\%$", r"$15\%$", r"$20\%$", r"$25\%$", r"$30\%$"), output / "g-ncvoter-vary-delete.pdf")),
+        ("a", lambda: sketch_runtime_memory(panel_rows(sketch, "a"), "a", output / "a-dblp-vary-w.pdf")),
+        ("b", lambda: sketch_runtime_memory(panel_rows(sketch, "b"), "b", output / "b-dblp-vary-h.pdf")),
+        ("c", lambda: recall_by_depth(panel_rows(sketch, "c"), output / "c-adult-vary-h-recall.pdf")),
+        ("d", lambda: categorical_runtime(panel_rows(rows, "d"), ("a1d1", "a5d2", "a15d3", "a20d4", "a30d5"), (r"$(1\%,1\%)$", r"$(5\%,2\%)$", r"$(15\%,3\%)$", r"$(20\%,4\%)$", r"$(30\%,5\%)$"), output / "d-dblp-vary-add-dominant.pdf", rotation=15, log_y=False)),
+        ("e", lambda: categorical_runtime(panel_rows(rows, "e"), ("a1d1", "a2d5", "a3d15", "a4d20", "a5d30"), (r"$(1\%,1\%)$", r"$(2\%,5\%)$", r"$(3\%,15\%)$", r"$(4\%,20\%)$", r"$(5\%,30\%)$"), output / "e-dblp-vary-delete-dominant.pdf", rotation=15, log_y=False)),
+        ("f", lambda: categorical_runtime(panel_rows(rows, "f"), ("add1", "add5", "add15", "add20", "add30"), percent, output / f"f-{panel_dataset(rows, 'f')}-vary-add.pdf", log_y=False)),
+        ("g", lambda: categorical_runtime(panel_rows(rows, "g"), ("del1", "del5", "del15", "del20", "del30"), percent, output / "g-ncvoter-vary-delete.pdf", log_y=False)),
         ("h", lambda: categorical_runtime(panel_rows(rows, "h"), ("add1", "add5", "add15", "add20", "add30"), percent, output / "h-ncvoter-vary-add.pdf", annotate_oom=True)),
         ("i", lambda: categorical_runtime(panel_rows(rows, "i"), ("del1", "del5", "del15", "del20", "del30"), percent, output / "i-ncvoter-ml40-vary-delete.pdf", annotate_oom=True)),
-        ("j", lambda: breakdown_runtime(panel_rows(rows, "f"), output / "j-dblp-add-breakdown.pdf")),
+        ("j", lambda: breakdown_runtime(panel_rows(rows, "f"), output / f"j-{panel_dataset(rows, 'f')}-add-breakdown.pdf")),
         ("k", lambda: repeated_runtime(panel_rows(rows, "k"), output / "k-ncvoter-repeated-updates.pdf")),
         ("l", lambda: categorical_runtime(panel_rows(rows, "l"), ("d0.2", "d0.4", "d0.6", "d0.8", "d1.0"), (r"$20\%$", r"$40\%$", r"$60\%$", r"$80\%$", r"$100\%$"), output / "l-dblp-vary-dataset-size.pdf")),
         ("m", lambda: aff_runtime(panel_rows(rows, "m"), output / "m-ncvoter-vary-aff.pdf")),
@@ -492,6 +496,8 @@ def generate(rows: list[dict[str, str]], output: Path) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--csv", type=Path, required=True)
+    parser.add_argument("--abc", type=Path,
+                        help="Seed-agg CSV for panels a,b,c (default: Figure5_abc_seed_std.csv next to --csv)")
     parser.add_argument("--output", type=Path)
     parser.add_argument("--speedup-only", action="store_true",
                         help="Print the d-p speedup table without generating PDFs")
@@ -501,8 +507,12 @@ def main() -> None:
     if args.speedup_only:
         report_speedups(rows, output)
         return
+    abc_path = args.abc or args.csv.resolve().parent / "Figure5_abc_seed_std.csv"
+    abc_rows = read_rows(abc_path) if abc_path.is_file() else None
+    if abc_rows is None:
+        print(f"warning: {abc_path} missing; panels a-c use {args.csv}")
     configure_style()
-    generate(rows, output)
+    generate(rows, output, abc_rows=abc_rows)
 
 
 if __name__ == "__main__":
